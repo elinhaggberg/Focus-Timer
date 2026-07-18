@@ -18,6 +18,25 @@ function shuffle(array) {
   return copy;
 }
 
+// A parent and its unchecked children play as one contiguous block — the
+// group is what gets shuffled and what "Randomize again" skips, not each
+// item individually. Otherwise a nested checklist gets scattered across the
+// session instead of being worked through together. A parent that's already
+// checked but still has unchecked children still forms a (headerless) group
+// for just those children.
+function buildGroups(list) {
+  const groups = [];
+  for (const item of list.items) {
+    const ids = [];
+    if (!item.checked) ids.push(item.id);
+    for (const child of item.children || []) {
+      if (!child.checked) ids.push(child.id);
+    }
+    if (ids.length > 0) groups.push(ids);
+  }
+  return groups;
+}
+
 export function renderTodoPlayer(root, nav, todoId, config) {
   const list = getTodoList(todoId);
   if (!list) {
@@ -28,7 +47,10 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   const duration = config?.duration || 30;
 
   const totalItems = flattenTodoItems(list).length;
-  let queue = shuffle(flattenTodoItems(list).filter((i) => !i.checked).map((i) => i.id));
+  const groups = shuffle(buildGroups(list));
+  const idToGroupIndex = new Map();
+  groups.forEach((group, gi) => group.forEach((id) => idToGroupIndex.set(id, gi)));
+  let queue = groups.flat();
 
   const tpl = document.getElementById("tpl-todo-player");
   root.replaceChildren(tpl.content.cloneNode(true));
@@ -138,7 +160,8 @@ export function renderTodoPlayer(root, nav, todoId, config) {
       itemTimerEl.classList.add("hidden");
     }
 
-    randomizeAgainBtn.classList.toggle("hidden", queue.length <= 1);
+    const remainingGroupCount = new Set(queue.map((id) => idToGroupIndex.get(id))).size;
+    randomizeAgainBtn.classList.toggle("hidden", remainingGroupCount <= 1);
   }
 
   function resetItemTimer() {
@@ -167,10 +190,17 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   });
 
   randomizeAgainBtn.addEventListener("click", () => {
-    if (busy || queue.length <= 1) return;
-    const skipped = queue.shift();
+    if (busy || queue.length === 0) return;
+    // Skips the whole current group (not just the current item), since the
+    // point is to switch to a different topic — leaving a sibling from the
+    // same group as the very next item would defeat that.
+    const currentGroupIdx = idToGroupIndex.get(queue[0]);
+    let chunkEnd = 0;
+    while (chunkEnd < queue.length && idToGroupIndex.get(queue[chunkEnd]) === currentGroupIdx) chunkEnd++;
+    if (chunkEnd >= queue.length) return; // only one group left — nothing else to switch to
+    const chunk = queue.splice(0, chunkEnd);
     const insertAt = 1 + Math.floor(Math.random() * queue.length);
-    queue.splice(insertAt, 0, skipped);
+    queue.splice(insertAt, 0, ...chunk);
     resetItemTimer();
     render();
   });

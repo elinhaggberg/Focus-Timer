@@ -1162,10 +1162,8 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
 .todo-item-text:focus { outline: none; }
 .todo-item-text::placeholder { color: var(--text-dim); }
 .todo-item.checked .todo-item-text { color: var(--text-dim); text-decoration: line-through; }
-.nest-hint {
-  border-bottom: 2px solid var(--accent);
-}
-.todo-item .unnest-btn { color: var(--text-dim); }
+.todo-item .unnest-btn,
+.todo-item .indent-btn { color: var(--text-dim); }
 
 /* Overview modal's action row has more buttons than fit comfortably in one
    line on a narrow phone, so — unlike the other preview headers — it wraps
