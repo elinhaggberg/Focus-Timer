@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <script>
+    // Applied before the stylesheet paints, since the module script that
+    // normally owns theming (js/theme.js) runs after HTML parsing and would
+    // otherwise flash the wrong theme first on every load. Falls back to the
+    // system preference when the user hasn't picked a theme explicitly.
+    try {
+      var themeMode = (JSON.parse(localStorage.getItem("ft_theme_v1") || "{}") || {}).mode;
+      if (!themeMode && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        themeMode = "dark";
+      }
+      if (themeMode) document.documentElement.dataset.theme = themeMode;
+    } catch (e) {}
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>Focus Timer</title>
+  <meta name="description" content="A simple, ad-free focus timer with Pomodoro sessions and randomized to-do lists." />
+  <meta name="theme-color" content="#f6f7f9" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" media="(prefers-color-scheme: light)" />
+  <link rel="icon" href="icons/icon-192-dark.png" media="(prefers-color-scheme: dark)" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Activity icons: Font Awesome Free (CC BY 4.0) — https://fontawesome.com/license/free -->
+  <div id="app"></div>
+
+  <template id="tpl-home">
+    <header class="topbar home-topbar">
+      <h1>Focus</h1>
+      <button class="icon-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg class="icon icon-sun" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M256 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM256 480a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM32 288a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM480 288a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM74.98 437.02a32 32 0 1 0 45.25-45.25 32 32 0 1 0-45.25 45.25zM391.8 120.2a32 32 0 1 0 45.25-45.25 32 32 0 1 0-45.25 45.25zM74.98 74.98a32 32 0 1 0 45.25 45.25 32 32 0 1 0-45.25-45.25zM437.02 437.02a32 32 0 1 0-45.25-45.25 32 32 0 1 0 45.25 45.25zM256 160a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"/></svg>
+        <svg class="icon icon-moon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.2 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"/></svg>
+      </button>
+    </header>
+    <div class="home-options">
+      <button type="button" class="home-option-card" id="new-focus-timer-btn">
+        <span class="home-option-icon">
+          <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><circle cx="256" cy="256" r="216" fill="none" stroke="currentColor" stroke-width="40"/><rect x="236" y="120" width="40" height="170" rx="20"/><rect x="256" y="226" width="140" height="40" rx="20"/></svg>
+          <span class="home-option-plus"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/></svg></span>
+        </span>
+        <span class="home-option-label">Set focus timer</span>
+      </button>
+      <button type="button" class="home-option-card" id="new-todo-btn">
+        <span class="home-option-icon">
+          <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><rect x="32" y="48" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="60" width="352" height="32" rx="16"/><rect x="32" y="228" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="240" width="352" height="32" rx="16"/><rect x="32" y="408" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="420" width="352" height="32" rx="16"/></svg>
+          <span class="home-option-plus"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/></svg></span>
+        </span>
+        <span class="home-option-label">Create to-do list</span>
+      </button>
+    </div>
+    <div class="home-separator"></div>
+    <p class="home-section-title">My saved activities</p>
+    <div class="item-list" id="saved-list"></div>
+  </template>
+
+  <template id="tpl-saved-card">
+    <article class="card saved-card">
+      <span class="card-icon"></span>
+      <div class="card-main">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn edit-btn" aria-label="Edit" title="Edit"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M352.9 21.2L308 66.1 445.9 204 490.8 159.1C504.4 145.6 512 127.2 512 108s-7.6-37.6-21.2-51.1L455.1 21.2C441.6 7.6 423.2 0 404 0s-37.6 7.6-51.1 21.2zM274.1 100L58.9 315.1c-10.7 10.7-18.5 24.1-22.6 38.7L.9 481.6c-2.3 8.3 0 17.3 6.2 23.4s15.1 8.5 23.4 6.2l127.8-35.5c14.6-4.1 27.9-11.8 38.7-22.6L412 237.9 274.1 100z"/></svg></button>
+        <button class="icon-btn play-btn" aria-label="Start" title="Start"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M91.2 36.9c-12.4-6.8-27.4-6.5-39.6 .7S32 57.9 32 72l0 368c0 14.1 7.5 27.2 19.6 34.4s27.2 7.5 39.6 .7l336-184c12.8-7 20.8-20.5 20.8-35.1s-8-28.1-20.8-35.1l-336-184z"/></svg></button>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-confirm-delete">
+    <div class="sheet confirm-sheet">
+      <h2 class="confirm-title">Delete?</h2>
+      <p class="confirm-message"></p>
+      <div class="form-actions">
+        <button type="button" class="text-btn secondary cancel-btn">Cancel</button>
+        <button type="button" class="text-btn danger confirm-btn">Delete</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Focus timer editor ===== -->
+
+  <template id="tpl-focus-editor">
+    <header class="topbar">
+      <button class="icon-btn back-btn" aria-label="Back"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288 480 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-370.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></button>
+      <input class="timer-name-input" type="text" placeholder="Focus timer name" maxlength="60" />
+      <button class="text-btn save-timer-btn">Save</button>
+    </header>
+    <div class="segmented tabs" style="margin: 0 16px 12px;">
+      <button type="button" class="segmented-option tab-option active" data-tab="pomodoro">Pomodoro</button>
+      <button type="button" class="segmented-option tab-option" data-tab="custom">Custom</button>
+    </div>
+    <div class="tab-panel" id="pomodoro-panel" style="padding: 0 16px 100px; overflow-y: auto; flex: 1;">
+      <button type="button" class="activity-field-btn" id="pomodoro-activity-btn" style="margin-bottom: 16px;">
+        <span class="card-icon"></span>
+        <span class="activity-field-label activity-field-placeholder">Add activity (optional)</span>
+        <svg class="icon chevron-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polygon points="8,4 16,12 8,20"/></svg>
+      </button>
+      <div id="pomodoro-set-card"></div>
+      <div id="pomodoro-longbreak-card" style="margin-top: 12px;"></div>
+    </div>
+    <div class="tab-panel hidden" id="custom-panel" style="padding: 0 16px 100px; overflow-y: auto; flex: 1;">
+      <button type="button" class="activity-field-btn" id="custom-activity-btn" style="margin-bottom: 16px;">
+        <span class="card-icon"></span>
+        <span class="activity-field-label activity-field-placeholder">Add activity (optional)</span>
+        <svg class="icon chevron-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polygon points="8,4 16,12 8,20"/></svg>
+      </button>
+      <div class="interval-list" id="custom-interval-list" style="padding: 0; overflow: visible;"></div>
+    </div>
+    <button class="fab" id="add-interval-btn" aria-label="Add interval"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/></svg></button>
+  </template>
+
+  <template id="tpl-interval-card">
+    <article class="card interval-card">
+      <span class="drag-handle" aria-hidden="true"><svg class="icon" viewBox="0 0 320 512" aria-hidden="true" focusable="false"><path d="M128 40c0-22.1-17.9-40-40-40L40 0C17.9 0 0 17.9 0 40L0 88c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM0 424l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 40c0-22.1-17.9-40-40-40L232 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM192 232l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 424c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48z"/></svg></span>
+      <div class="card-main">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn duplicate-btn" aria-label="Duplicate" title="Duplicate"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M288 448l-224 0 0-224 48 0 0-64-48 0c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l224 0c35.3 0 64-28.7 64-64l0-48-64 0 0 48zm-64-96l224 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64L224 0c-35.3 0-64 28.7-64 64l0 224c0 35.3 28.7 64 64 64z"/></svg></button>
+        <button class="icon-btn edit-btn" aria-label="Edit" title="Edit"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M352.9 21.2L308 66.1 445.9 204 490.8 159.1C504.4 145.6 512 127.2 512 108s-7.6-37.6-21.2-51.1L455.1 21.2C441.6 7.6 423.2 0 404 0s-37.6 7.6-51.1 21.2zM274.1 100L58.9 315.1c-10.7 10.7-18.5 24.1-22.6 38.7L.9 481.6c-2.3 8.3 0 17.3 6.2 23.4s15.1 8.5 23.4 6.2l127.8-35.5c14.6-4.1 27.9-11.8 38.7-22.6L412 237.9 274.1 100z"/></svg></button>
+        <button class="icon-btn remove-btn" aria-label="Remove" title="Remove"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-pomodoro-interval-card">
+    <article class="card interval-card">
+      <span class="drag-handle" aria-hidden="true"><svg class="icon" viewBox="0 0 320 512" aria-hidden="true" focusable="false"><path d="M128 40c0-22.1-17.9-40-40-40L40 0C17.9 0 0 17.9 0 40L0 88c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM0 424l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 40c0-22.1-17.9-40-40-40L232 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM192 232l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 424c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48z"/></svg></span>
+      <div class="card-main">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn edit-btn" aria-label="Edit duration" title="Edit duration"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M352.9 21.2L308 66.1 445.9 204 490.8 159.1C504.4 145.6 512 127.2 512 108s-7.6-37.6-21.2-51.1L455.1 21.2C441.6 7.6 423.2 0 404 0s-37.6 7.6-51.1 21.2zM274.1 100L58.9 315.1c-10.7 10.7-18.5 24.1-22.6 38.7L.9 481.6c-2.3 8.3 0 17.3 6.2 23.4s15.1 8.5 23.4 6.2l127.8-35.5c14.6-4.1 27.9-11.8 38.7-22.6L412 237.9 274.1 100z"/></svg></button>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-set-card">
+    <article class="card set-card">
+      <div class="set-header">
+        <span class="drag-handle" aria-hidden="true"><svg class="icon" viewBox="0 0 320 512" aria-hidden="true" focusable="false"><path d="M128 40c0-22.1-17.9-40-40-40L40 0C17.9 0 0 17.9 0 40L0 88c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM0 424l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 40c0-22.1-17.9-40-40-40L232 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM192 232l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 424c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48z"/></svg></span>
+        <div class="rounds-stepper">
+          <button type="button" class="icon-btn rounds-dec" aria-label="Fewer rounds"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32z"/></svg></button>
+          <span class="rounds-value">2</span>
+          <button type="button" class="icon-btn rounds-inc" aria-label="More rounds"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/></svg></button>
+        </div>
+        <div class="card-actions">
+          <button class="icon-btn duplicate-btn" aria-label="Duplicate set" title="Duplicate"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M288 448l-224 0 0-224 48 0 0-64-48 0c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l224 0c35.3 0 64-28.7 64-64l0-48-64 0 0 48zm-64-96l224 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64L224 0c-35.3 0-64 28.7-64 64l0 224c0 35.3 28.7 64 64 64z"/></svg></button>
+          <button class="icon-btn remove-btn" aria-label="Remove set" title="Remove"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+        </div>
+      </div>
+      <textarea class="card-title set-name-input" placeholder="Set" maxlength="60" rows="1"></textarea>
+      <p class="card-meta"></p>
+      <div class="set-intervals"></div>
+      <button type="button" class="text-btn add-to-set-btn">+ Add interval to set</button>
+    </article>
+  </template>
+
+  <template id="tpl-add-choice">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Add to timer</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <button type="button" class="choice-btn" id="choice-interval">
+        <span class="choice-title">Interval</span>
+        <span class="choice-sub">A single timed block</span>
+      </button>
+      <button type="button" class="choice-btn" id="choice-set">
+        <span class="choice-title">Set</span>
+        <span class="choice-sub">A group of intervals that repeats for several rounds</span>
+      </button>
+    </div>
+  </template>
+
+  <template id="tpl-interval-form">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2 class="form-title">New interval</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <form id="interval-form">
+        <label class="field">
+          <span>Name</span>
+          <input type="text" name="name" maxlength="40" required autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Duration</span>
+          <div class="duration-picker">
+            <label class="duration-part">
+              <input type="number" name="amount-min" min="0" max="999" inputmode="numeric" placeholder="0" />
+              <span>min</span>
+            </label>
+            <label class="duration-part">
+              <input type="number" name="amount-sec" min="0" max="59" inputmode="numeric" placeholder="0" />
+              <span>sec</span>
+            </label>
+          </div>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="text-btn primary" id="save-interval-btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </template>
+
+  <template id="tpl-duration-form">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2 class="form-title">Edit duration</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <form id="duration-form">
+        <label class="field">
+          <span>Duration</span>
+          <div class="duration-picker">
+            <label class="duration-part">
+              <input type="number" name="amount-min" min="0" max="999" inputmode="numeric" placeholder="0" />
+              <span>min</span>
+            </label>
+            <label class="duration-part">
+              <input type="number" name="amount-sec" min="0" max="59" inputmode="numeric" placeholder="0" />
+              <span>sec</span>
+            </label>
+          </div>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="text-btn primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </template>
+
+  <!-- ===== Activity picker ===== -->
+
+  <template id="tpl-activity-picker">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Activity</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <div class="activity-grid" id="activity-grid"></div>
+    </div>
+  </template>
+
+  <template id="tpl-activity-tile">
+    <button type="button" class="activity-tile">
+      <span class="card-icon"></span>
+      <span class="activity-tile-label"></span>
+    </button>
+  </template>
+
+  <template id="tpl-new-activity-form">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>New activity</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <label class="field" style="margin-bottom: 14px;">
+        <span>Name</span>
+        <input type="text" id="new-activity-name" maxlength="30" autocomplete="off" placeholder="e.g. Draw" />
+      </label>
+      <span class="field" style="margin-bottom: 8px;"><span>Icon</span></span>
+      <input type="text" class="icon-picker-search" id="icon-picker-search" placeholder="Search icons…" autocomplete="off" />
+      <div class="icon-picker-grid" id="icon-picker-grid"></div>
+      <div class="form-actions">
+        <button type="button" class="text-btn primary" id="save-new-activity-btn">Save activity</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Preview ===== -->
+
+  <template id="tpl-focus-preview">
+    <div class="sheet preview-sheet">
+      <header class="preview-header">
+        <button class="icon-btn play-preview-header-btn" aria-label="Start" title="Start"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M91.2 36.9c-12.4-6.8-27.4-6.5-39.6 .7S32 57.9 32 72l0 368c0 14.1 7.5 27.2 19.6 34.4s27.2 7.5 39.6 .7l336-184c12.8-7 20.8-20.5 20.8-35.1s-8-28.1-20.8-35.1l-336-184z"/></svg></button>
+        <button class="icon-btn edit-preview-btn" aria-label="Edit" title="Edit"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M352.9 21.2L308 66.1 445.9 204 490.8 159.1C504.4 145.6 512 127.2 512 108s-7.6-37.6-21.2-51.1L455.1 21.2C441.6 7.6 423.2 0 404 0s-37.6 7.6-51.1 21.2zM274.1 100L58.9 315.1c-10.7 10.7-18.5 24.1-22.6 38.7L.9 481.6c-2.3 8.3 0 17.3 6.2 23.4s15.1 8.5 23.4 6.2l127.8-35.5c14.6-4.1 27.9-11.8 38.7-22.6L412 237.9 274.1 100z"/></svg></button>
+        <button class="icon-btn delete-preview-btn" aria-label="Delete" title="Delete"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"/></svg></button>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <h2 class="preview-title"></h2>
+      <p class="card-meta preview-meta"></p>
+      <div class="preview-list" id="preview-list"></div>
+      <button type="button" class="play-preview-btn" aria-label="Start">
+        <svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M91.2 36.9c-12.4-6.8-27.4-6.5-39.6 .7S32 57.9 32 72l0 368c0 14.1 7.5 27.2 19.6 34.4s27.2 7.5 39.6 .7l336-184c12.8-7 20.8-20.5 20.8-35.1s-8-28.1-20.8-35.1l-336-184z"/></svg>
+        Start
+      </button>
+    </div>
+  </template>
+
+  <!-- ===== Player ===== -->
+
+  <template id="tpl-player">
+    <header class="topbar player-topbar">
+      <div class="player-topbar-left">
+        <button class="icon-btn back-btn" aria-label="Exit"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+        <button class="icon-btn sound-toggle-btn" id="sound-toggle-btn" aria-label="Toggle sound"><svg class="icon" viewBox="0 0 576 512" aria-hidden="true" focusable="false"><path d="M48 352l48 0 134.1 119.2c6.4 5.7 14.6 8.8 23.1 8.8 19.2 0 34.8-15.6 34.8-34.8l0-378.4c0-19.2-15.6-34.8-34.8-34.8-8.5 0-16.7 3.1-23.1 8.8L96 160 48 160c-26.5 0-48 21.5-48 48l0 96c0 26.5 21.5 48 48 48zM367 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"/></svg></button>
+      </div>
+      <span class="total-timer" id="total-timer">00:00</span>
+      <span class="interval-count" id="interval-count"></span>
+    </header>
+    <div class="player-progress"><div class="player-progress-fill" id="player-progress-fill"></div></div>
+    <div class="player-stage">
+      <p class="set-context hidden" id="set-context"></p>
+      <span class="player-activity-icon hidden" id="player-activity-icon"></span>
+      <p class="interval-name" id="interval-name"></p>
+      <div class="stage-display" id="stage-display">
+        <div class="countdown-ring hidden" id="countdown-ring" aria-hidden="true">
+          <svg viewBox="0 0 120 120" class="countdown-ring-svg">
+            <circle class="countdown-ring-track" cx="60" cy="60" r="54"></circle>
+            <circle class="countdown-ring-fill" id="countdown-ring-fill" cx="60" cy="60" r="54"></circle>
+          </svg>
+        </div>
+        <span class="big-number" id="big-number">–</span>
+        <span class="big-label" id="big-label"></span>
+        <p class="up-next hidden" id="up-next"></p>
+      </div>
+    </div>
+    <div class="player-controls">
+      <button class="round-btn" id="prev-btn" aria-label="Previous interval"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M363 36.8c-12.9-7-28.7-6.3-41 1.8L64 208.1 64 64c0-17.7-14.3-32-32-32S0 46.3 0 64L0 448c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144.1 258 169.6c12.3 8.1 28 8.8 41 1.8s21-20.5 21-35.2l0-368c0-14.7-8.1-28.2-21-35.2z"/></svg></button>
+      <button class="round-btn round-btn-lg" id="play-pause-btn" aria-label="Play or pause"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M91.2 36.9c-12.4-6.8-27.4-6.5-39.6 .7S32 57.9 32 72l0 368c0 14.1 7.5 27.2 19.6 34.4s27.2 7.5 39.6 .7l336-184c12.8-7 20.8-20.5 20.8-35.1s-8-28.1-20.8-35.1l-336-184z"/></svg></button>
+      <button class="round-btn" id="next-btn" aria-label="Next interval"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M21 36.8c12.9-7 28.7-6.3 41 1.8L320 208.1 320 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 384c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-144.1-258 169.6c-12.3 8.1-28 8.8-41 1.8S0 454.7 0 440L0 72C0 57.3 8.1 43.8 21 36.8z"/></svg></button>
+    </div>
+  </template>
+
+  <template id="tpl-finish">
+    <div class="finish-screen">
+      <canvas id="confetti-canvas"></canvas>
+      <div class="finish-card">
+        <h1>Well done! <svg class="icon trophy-icon" style="width:0.85em;height:0.85em;vertical-align:-0.1em;color:var(--accent);" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M144.3 0l224 0c26.5 0 48.1 21.8 47.1 48.2-.2 5.3-.4 10.6-.7 15.8l49.6 0c26.1 0 49.1 21.6 47.1 49.8-7.5 103.7-60.5 160.7-118 190.5-15.8 8.2-31.9 14.3-47.2 18.8-20.2 28.6-41.2 43.7-57.9 51.8l0 73.1 64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0 0-73.1c-16-7.7-35.9-22-55.3-48.3-18.4-4.8-38.4-12.1-57.9-23.1-54.1-30.3-102.9-87.4-109.9-189.9-1.9-28.1 21-49.7 47.1-49.7l49.6 0c-.3-5.2-.5-10.4-.7-15.8-1-26.5 20.6-48.2 47.1-48.2zM101.5 112l-52.4 0c6.2 84.7 45.1 127.1 85.2 149.6-14.4-37.3-26.3-86-32.8-149.6zM380 256.8c40.5-23.8 77.1-66.1 83.3-144.8L411 112c-6.2 60.9-17.4 108.2-31 144.8z"/></svg></h1>
+        <div class="summary-box" id="summary-box"></div>
+        <button class="text-btn primary" id="done-btn">Back to Home</button>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
