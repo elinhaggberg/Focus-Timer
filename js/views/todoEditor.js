@@ -71,16 +71,23 @@ export function renderTodoHub(root, nav, todoId) {
     }
   }
 
-  function clearNestHints() {
-    listEl.querySelectorAll(".nest-hint").forEach((el) => el.classList.remove("nest-hint"));
-  }
-
   function createTopLevelGroup(item) {
     const group = document.createElement("div");
     group.className = "todo-item-group";
     group.dataset.id = item.id;
 
     const row = createItemRow(item, list.items, { onEnter: (idx) => insertAfter(list.items, idx, item.id), onRemove: () => removeItem(list.items, item.id) });
+
+    // Nesting is an explicit, visible action — an item can become a child of
+    // whatever's directly above it, as long as it isn't itself already a
+    // parent (no grandchildren) and there's something above it to nest under.
+    const itemIdx = list.items.findIndex((i) => i.id === item.id);
+    if (itemIdx > 0 && item.children.length === 0) {
+      const indentBtn = row.querySelector(".indent-btn");
+      indentBtn.classList.remove("hidden");
+      indentBtn.addEventListener("click", () => nestUnderPrevious(item));
+    }
+
     group.appendChild(row);
 
     if (item.children.length > 0) {
@@ -102,41 +109,11 @@ export function renderTodoHub(root, nav, todoId) {
       group.appendChild(childrenEl);
     }
 
+    // Drag here is pure reordering — nesting is handled by the explicit
+    // indent/un-nest buttons instead, so a drag can never surprise someone
+    // by nesting an item when they only meant to move it up or down.
     enableDragReorder(group, row.querySelector(".drag-handle"), listEl, (order) => {
       list.items.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
-    }, {
-      onHoverNest: (siblingSnapshot, pointerY, draggedCard) => {
-        const draggedItem = list.items.find((i) => i.id === draggedCard.dataset.id);
-        if (!draggedItem || draggedItem.children.length > 0) {
-          clearNestHints();
-          return null;
-        }
-        for (const { el, rect } of siblingSnapshot) {
-          const lowerZoneStart = rect.top + rect.height * 0.6;
-          if (pointerY >= lowerZoneStart && pointerY <= rect.bottom + 12) {
-            clearNestHints();
-            el.classList.add("nest-hint");
-            return el.dataset.id;
-          }
-        }
-        clearNestHints();
-        return null;
-      },
-      onClearNestHint: clearNestHints,
-      onDropNest: (targetId, draggedCard) => {
-        const draggedId = draggedCard.dataset.id;
-        const draggedIdx = list.items.findIndex((i) => i.id === draggedId);
-        if (draggedIdx < 0) return;
-        const [draggedItem] = list.items.splice(draggedIdx, 1);
-        const target = list.items.find((i) => i.id === targetId);
-        if (!target) {
-          list.items.splice(draggedIdx, 0, draggedItem);
-          renderItems();
-          return;
-        }
-        target.children.push({ id: draggedItem.id, text: draggedItem.text, checked: draggedItem.checked, children: [] });
-        renderItems();
-      },
     });
 
     return group;
@@ -193,6 +170,15 @@ export function renderTodoHub(root, nav, todoId) {
   function removeItem(array, id) {
     const idx = array.findIndex((i) => i.id === id);
     if (idx >= 0) array.splice(idx, 1);
+  }
+
+  function nestUnderPrevious(item) {
+    const idx = list.items.findIndex((i) => i.id === item.id);
+    if (idx <= 0) return;
+    const prev = list.items[idx - 1];
+    const [removed] = list.items.splice(idx, 1);
+    prev.children.push({ id: removed.id, text: removed.text, checked: removed.checked, children: [] });
+    renderItems();
   }
 
   function unnestItem(parent, childId) {
