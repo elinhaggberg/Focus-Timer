@@ -108,12 +108,19 @@ export function openTodoOverview(todoId, nav, { onDeleted } = {}) {
     nav.toTodoEditor(list.id);
   });
 
+  // Saving as a template is a one-shot action per time the overview is
+  // opened — disabling it after the first tap avoids silently piling up
+  // duplicate templates from a few extra taps. Reopening the overview
+  // (a fresh sheet instance) re-enables it, so editing the list and saving
+  // an updated template later still works.
   const saveTemplateBtn = sheet.el.querySelector(".save-template-btn");
   saveTemplateBtn.addEventListener("click", () => {
     saveAsTemplate(list);
-    const original = saveTemplateBtn.innerHTML;
-    saveTemplateBtn.textContent = "✓";
-    setTimeout(() => (saveTemplateBtn.innerHTML = original), 1200);
+    saveTemplateBtn.disabled = true;
+    saveTemplateBtn.title = "Saved as template";
+    saveTemplateBtn.setAttribute("aria-label", "Saved as template");
+    saveTemplateBtn.innerHTML =
+      '<svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>';
   });
 
   sheet.el.querySelector(".delete-preview-btn").addEventListener("click", () => {
