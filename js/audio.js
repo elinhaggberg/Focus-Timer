@@ -118,37 +118,33 @@ function primeTone(key, freq, duration, options) {
 }
 
 // Call from a user gesture (e.g. tapping play) to unlock audio on iOS/Safari.
-// Also primes every tone that gets re-triggered multiple times in quick
-// succession (e.g. the three end-of-interval warning beeps, one per second):
-// on iOS a freshly created <audio> element that's never been played yet can
-// silently drop a play() call if it's re-triggered again before its first
-// play has fully loaded/decoded ("interrupted by a new load request").
-// Playing each one once, muted, well before it's ever needed for real forces
-// it to fully load so later rapid-fire plays start instantly and reliably.
+// Also primes every tone used, since on iOS a freshly created <audio>
+// element that's never been played yet can silently drop a play() call if
+// it's re-triggered again before its first play has fully loaded/decoded
+// ("interrupted by a new load request") — playing each one once, muted,
+// well before it's ever needed for real forces it to fully load so later
+// plays start instantly and reliably.
 export function unlockAudio() {
   play("unlock", () => renderToneWav(440, 0.05, { volume: 0 }));
-  primeTone("countdownTick", 880, 0.12, { type: "square", volume: 0.3 });
-  primeTone("intervalStart", 1320, 0.18, { type: "square", volume: 0.4 });
-  primeTone("intervalEnd", 660, 0.15, { type: "sine", volume: 0.3 });
+  primeTone("alarm1", 1046.5, 0.15, { type: "square", volume: 0.4 });
+  primeTone("alarm2", 1046.5, 0.15, { type: "square", volume: 0.4 });
+  primeTone("itemDone", 660, 0.15, { type: "sine", volume: 0.3 });
 }
 
-// Short low blip used during the 3-2-1 countdown.
-export function countdownTick() {
-  tone("countdownTick", 880, 0.12, { type: "square", volume: 0.3 });
+// The one alarm: a short double-beep played exactly when a countdown hits
+// zero — a Focus/Break transition, or a to-do timer running out.
+export function alarm() {
+  tone("alarm1", 1046.5, 0.15, { type: "square", volume: 0.4 });
+  setTimeout(() => tone("alarm2", 1046.5, 0.15, { type: "square", volume: 0.4 }), 220);
 }
 
-// Higher double-beep marking the start of a work interval ("go").
-export function intervalStart() {
-  tone("intervalStart", 1320, 0.18, { type: "square", volume: 0.4 });
+// Soft single tone confirming a to-do item was checked off.
+export function itemDone() {
+  tone("itemDone", 660, 0.15, { type: "sine", volume: 0.3 });
 }
 
-// Soft single tone marking rest/reps-complete transitions.
-export function intervalEnd() {
-  tone("intervalEnd", 660, 0.15, { type: "sine", volume: 0.3 });
-}
-
-// Cheerful ascending run played once the whole workout is complete.
-export function workoutComplete() {
+// Cheerful ascending run played once a session or list is fully complete.
+export function celebrate() {
   if (!enabled) return;
   const notes = [523.25, 659.25, 783.99, 1046.5];
   notes.forEach((freq, i) => {

@@ -112,10 +112,13 @@ export function renderTodoPlayer(root, nav, todoId, config) {
 
   function tick() {
     if (timerMode === "perItem") {
+      const wasPositive = itemRemaining > 0;
       itemRemaining = Math.max(0, itemRemaining - 1);
+      if (wasPositive && itemRemaining === 0) audio.alarm();
     } else if (timerMode === "overall") {
       overallRemaining = Math.max(0, overallRemaining - 1);
       if (overallRemaining <= 0) {
+        audio.alarm();
         finish("timeup");
         return;
       }
@@ -180,7 +183,7 @@ export function renderTodoPlayer(root, nav, todoId, config) {
     saveTodoList(list);
     maybeLogCompletion(list, wasComplete);
 
-    audio.intervalEnd();
+    audio.itemDone();
     playCheckBurst();
 
     setTimeout(() => {
@@ -242,7 +245,9 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   function finish(reason) {
     stopTicking();
     setWakeLockWanted(false);
-    audio.workoutComplete();
+    // "timeup" already played the alarm as the overall timer hit zero —
+    // the fanfare is reserved for an actual full completion.
+    if (reason === "done") audio.celebrate();
 
     const doneTpl = document.getElementById("tpl-todo-done");
     root.replaceChildren(doneTpl.content.cloneNode(true));
