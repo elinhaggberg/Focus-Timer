@@ -80,6 +80,52 @@ export function focusTimerSequence(timer) {
   return flattenNodes(timer.custom.intervals).map((i) => ({ ...i, kind: "focus" }));
 }
 
+// ---- To-do lists ----
+
+// Flattens a list's items (top-level + one level of children) into a single
+// array, each tagged with its parent's text when it has one — used both to
+// count progress and to build the randomizable pool for the player.
+export function flattenTodoItems(list) {
+  const flat = [];
+  for (const item of list.items) {
+    flat.push({ ...item, parentText: null });
+    for (const child of item.children || []) {
+      flat.push({ ...child, parentText: item.text });
+    }
+  }
+  return flat;
+}
+
+export function todoCounts(list) {
+  const flat = flattenTodoItems(list);
+  const total = flat.length;
+  const checked = flat.filter((i) => i.checked).length;
+  return { checked, total };
+}
+
+export function todoListMeta(list) {
+  const { checked, total } = todoCounts(list);
+  if (total === 0) return "No items yet";
+  return `${checked}/${total} checked`;
+}
+
+export function isTodoListComplete(list) {
+  const { checked, total } = todoCounts(list);
+  return total > 0 && checked === total;
+}
+
+// Plain-text rendering for sharing — indents children under their parent.
+export function todoListToText(list) {
+  const lines = [list.name || "Untitled list", ""];
+  for (const item of list.items) {
+    lines.push(`${item.checked ? "☑" : "☐"} ${item.text}`);
+    for (const child of item.children || []) {
+      lines.push(`  ${child.checked ? "☑" : "☐"} ${child.text}`);
+    }
+  }
+  return lines.join("\n");
+}
+
 export function formatDate(ts) {
   const d = new Date(ts);
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });

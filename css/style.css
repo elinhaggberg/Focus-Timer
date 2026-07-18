@@ -1133,3 +1133,49 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
 .nest-hint {
   border-bottom: 2px solid var(--accent);
 }
+.todo-item .unnest-btn { color: var(--text-dim); }
+
+/* Overview modal's action row has more buttons than fit comfortably in one
+   line on a narrow phone, so — unlike the other preview headers — it wraps
+   and uses a smaller button size instead of overflowing. */
+.todo-overview-actions {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.todo-overview-actions .icon-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 0.95rem;
+}
+
+.todo-checklist-row {
+  cursor: pointer;
+}
+.todo-checklist-row.nested {
+  margin-left: 24px;
+  background: var(--surface-2);
+}
+.todo-item-label {
+  flex: 1;
+  font-size: 1rem;
+  color: var(--text);
+  word-break: break-word;
+}
+.todo-checklist-row.checked .todo-item-label { color: var(--text-dim); text-decoration: line-through; }
+
+/* Player: the big animated checkmark that flashes in place of the countdown
+   ring/number for a beat after "Done" is pressed. */
+.todo-check-big {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  font-size: 2.4rem;
+  animation: todo-check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes todo-check-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+:root[data-theme="playful"] .todo-checkbox { border-radius: 10px; }
+:root[data-theme="playful"] .todo-overview-actions .icon-btn { border-radius: 12px; }

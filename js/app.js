@@ -4,12 +4,15 @@ import { renderFocusPlayer } from "./views/focusPlayer.js";
 import { renderFinish } from "./views/finish.js";
 import { renderLog } from "./views/log.js";
 import { renderGoals } from "./views/goals.js";
+import { renderTodoHub } from "./views/todoEditor.js";
+import { renderTodoPlayer } from "./views/todoPlayer.js";
 import { applyTheme } from "./theme.js";
 
 applyTheme();
 
 const root = document.getElementById("app");
 let pendingFinishSummary = null;
+let pendingTodoPlayConfig = null;
 
 const nav = {
   toHome: () => {
@@ -30,6 +33,13 @@ const nav = {
   },
   toGoals: () => {
     location.hash = "#/goals";
+  },
+  toTodoEditor: (id) => {
+    location.hash = id ? `#/todo/edit/${id}` : "#/todo/edit/new";
+  },
+  toTodoPlayer: (id, config) => {
+    pendingTodoPlayConfig = config || { timerMode: "none" };
+    location.hash = `#/todo/play/${id}`;
   },
 };
 
@@ -61,6 +71,18 @@ function route() {
   }
   if (parts[0] === "goals") {
     renderGoals(root, nav);
+    return;
+  }
+  if (parts[0] === "todo" && parts[1] === "edit") {
+    renderTodoHub(root, nav, parts[2] === "new" ? null : parts[2]);
+    return;
+  }
+  if (parts[0] === "todo" && parts[1] === "play") {
+    if (!pendingTodoPlayConfig) {
+      nav.toHome();
+      return;
+    }
+    renderTodoPlayer(root, nav, parts[2], pendingTodoPlayConfig);
     return;
   }
   renderHome(root, nav);

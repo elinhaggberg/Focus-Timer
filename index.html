@@ -451,6 +451,14 @@
           <p>Tap play and it starts right away — no extra tap needed. Use the sound icon to toggle beeps, and the prev/next buttons to move between intervals.</p>
         </section>
         <section>
+          <h3>To-do lists</h3>
+          <p>Tap <strong>Create to-do list</strong> to start typing — press Enter to jump to the next item, drag the grip to reorder, and drag an item onto the bottom of another to nest it as a sub-item. Saved lists are also available as reusable templates.</p>
+        </section>
+        <section>
+          <h3>Using a list</h3>
+          <p>Open a saved list to check items off directly, or tap <strong>Randomize</strong> to work through it one item at a time — <strong>Timer</strong> adds a per-item or overall countdown first. Use <strong>Clear</strong> to reset the checks without deleting the list.</p>
+        </section>
+        <section>
           <h3>Log &amp; Goals</h3>
           <p>Every completed focus session is recorded in the Log. Set a daily or weekly Goal to track a streak, and optionally show your progress on the Home Screen.</p>
         </section>
@@ -618,6 +626,158 @@
       </label>
       <div class="form-actions">
         <button type="button" class="text-btn primary save-goal-btn">Save goal</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== To-do lists ===== -->
+
+  <template id="tpl-todo-hub">
+    <header class="topbar">
+      <button class="icon-btn back-btn" aria-label="Back"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288 480 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-370.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></button>
+      <h1 id="todo-hub-title">New list</h1>
+      <button class="text-btn save-list-btn">Save</button>
+    </header>
+    <div class="segmented tabs" id="todo-hub-tabs" style="margin: 0 16px 12px;">
+      <button type="button" class="segmented-option tab-option active" data-tab="new">Create new</button>
+      <button type="button" class="segmented-option tab-option" data-tab="templates">Saved templates</button>
+    </div>
+    <div class="tab-panel" id="todo-new-panel" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+      <input class="timer-name-input" type="text" id="todo-title-input" placeholder="List title" maxlength="60" style="margin: 0 16px 10px;" />
+      <div class="item-list" id="todo-item-list"></div>
+    </div>
+    <div class="tab-panel hidden" id="todo-templates-panel" style="padding: 0 16px 100px; overflow-y: auto; flex: 1;">
+      <div class="item-list" id="todo-templates-list" style="padding: 0;"></div>
+    </div>
+  </template>
+
+  <template id="tpl-todo-item">
+    <article class="card todo-item">
+      <span class="drag-handle" aria-hidden="true"><svg class="icon" viewBox="0 0 320 512" aria-hidden="true" focusable="false"><path d="M128 40c0-22.1-17.9-40-40-40L40 0C17.9 0 0 17.9 0 40L0 88c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM0 424l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 40c0-22.1-17.9-40-40-40L232 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48zM192 232l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM320 424c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40l48 0c22.1 0 40-17.9 40-40l0-48z"/></svg></span>
+      <button type="button" class="todo-checkbox" aria-label="Toggle checked"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg></button>
+      <input type="text" class="todo-item-text" placeholder="Click to add your first item" maxlength="200" autocomplete="off" />
+      <button type="button" class="icon-btn unnest-btn hidden" aria-label="Move to top level" title="Move to top level"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288 480 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-370.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></button>
+      <button type="button" class="icon-btn remove-btn" aria-label="Remove item" title="Remove"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+    </article>
+  </template>
+
+  <template id="tpl-todo-template-card">
+    <article class="card saved-card">
+      <span class="card-icon"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><rect x="32" y="48" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="60" width="352" height="32" rx="16"/><rect x="32" y="228" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="240" width="352" height="32" rx="16"/><rect x="32" y="408" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="420" width="352" height="32" rx="16"/></svg></span>
+      <div class="card-main">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn delete-btn" aria-label="Delete template" title="Delete template"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"/></svg></button>
+        <button class="icon-btn use-btn" aria-label="Use template" title="Use template"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/></svg></button>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-todo-overview">
+    <div class="sheet preview-sheet">
+      <header class="preview-header todo-overview-actions">
+        <button class="icon-btn randomize-btn" aria-label="Randomize" title="Randomize"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M403.8 34.4c12-5 25.7-2.2 34.9 6.9l64 64c6 6 9.4 14.1 9.4 22.6s-3.4 16.6-9.4 22.6l-64 64c-9.2 9.2-22.9 11.9-34.9 6.9S384 204.9 384 192l0-32-32 0c-10.1 0-19.6 4.7-25.6 12.8l-32.4 43.2-40-53.3 21.2-28.3C293.3 110.2 321.8 96 352 96l32 0 0-32c0-12.9 7.8-24.6 19.8-29.6zM154 296l40 53.3-21.2 28.3C154.7 401.8 126.2 416 96 416l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0c10.1 0 19.6-4.7 25.6-12.8L154 296zM438.6 470.6c-9.2 9.2-22.9 11.9-34.9 6.9S384 460.9 384 448l0-32-32 0c-30.2 0-58.7-14.2-76.8-38.4L121.6 172.8c-6-8.1-15.5-12.8-25.6-12.8l-64 0c-17.7 0-32-14.3-32-32S14.3 96 32 96l64 0c30.2 0 58.7 14.2 76.8 38.4L326.4 339.2c6 8.1 15.5 12.8 25.6 12.8l32 0 0-32c0-12.9 7.8-24.6 19.8-29.6s25.7-2.2 34.9 6.9l64 64c6 6 9.4 14.1 9.4 22.6s-3.4 16.6-9.4 22.6l-64 64z"/></svg></button>
+        <button class="icon-btn timer-btn" aria-label="Timer" title="Timer"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><circle cx="256" cy="256" r="216" fill="none" stroke="currentColor" stroke-width="40"/><rect x="236" y="120" width="40" height="170" rx="20"/><rect x="256" y="226" width="140" height="40" rx="20"/></svg></button>
+        <button class="icon-btn clear-btn" aria-label="Clear checks" title="Clear checks"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M256 64c-56.8 0-107.9 24.7-143.1 64l47.1 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 192c-17.7 0-32-14.3-32-32L0 32C0 14.3 14.3 0 32 0S64 14.3 64 32l0 54.7C110.9 33.6 179.5 0 256 0 397.4 0 512 114.6 512 256S397.4 512 256 512c-87 0-163.9-43.4-210.1-109.7-10.1-14.5-6.6-34.4 7.9-44.6s34.4-6.6 44.6 7.9c34.8 49.8 92.4 82.3 157.6 82.3 106 0 192-86 192-192S362 64 256 64z"/></svg></button>
+        <button class="icon-btn share-btn" aria-label="Share" title="Share"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M384 192c53 0 96-43 96-96s-43-96-96-96-96 43-96 96c0 5.4 .5 10.8 1.3 16L159.6 184.1c-16.9-15-39.2-24.1-63.6-24.1-53 0-96 43-96 96s43 96 96 96c24.4 0 46.6-9.1 63.6-24.1L289.3 400c-.9 5.2-1.3 10.5-1.3 16 0 53 43 96 96 96s96-43 96-96-43-96-96-96c-24.4 0-46.6 9.1-63.6 24.1L190.7 272c.9-5.2 1.3-10.5 1.3-16s-.5-10.8-1.3-16l129.7-72.1c16.9 15 39.2 24.1 63.6 24.1z"/></svg></button>
+        <button class="icon-btn edit-preview-btn" aria-label="Edit" title="Edit"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M352.9 21.2L308 66.1 445.9 204 490.8 159.1C504.4 145.6 512 127.2 512 108s-7.6-37.6-21.2-51.1L455.1 21.2C441.6 7.6 423.2 0 404 0s-37.6 7.6-51.1 21.2zM274.1 100L58.9 315.1c-10.7 10.7-18.5 24.1-22.6 38.7L.9 481.6c-2.3 8.3 0 17.3 6.2 23.4s15.1 8.5 23.4 6.2l127.8-35.5c14.6-4.1 27.9-11.8 38.7-22.6L412 237.9 274.1 100z"/></svg></button>
+        <button class="icon-btn save-template-btn" aria-label="Save as template" title="Save as template"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M64 0C28.7 0 0 28.7 0 64L0 480c0 11.5 6.2 22.2 16.2 27.8s22.3 5.5 32.2-.4L192 421.3 335.5 507.4c9.9 5.9 22.2 6.1 32.2 .4S384 491.5 384 480l0-416c0-35.3-28.7-64-64-64L64 0z"/></svg></button>
+        <button class="icon-btn delete-preview-btn" aria-label="Delete list" title="Delete list" style="margin-left:auto;"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"/></svg></button>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <h2 class="preview-title"></h2>
+      <p class="card-meta preview-meta"></p>
+      <div class="preview-list todo-checklist" id="todo-overview-list"></div>
+    </div>
+  </template>
+
+  <template id="tpl-todo-checklist-row">
+    <div class="card todo-item todo-checklist-row">
+      <button type="button" class="todo-checkbox" aria-label="Toggle checked"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg></button>
+      <span class="todo-item-label"></span>
+    </div>
+  </template>
+
+  <template id="tpl-todo-full-list-sheet">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Full list</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <div class="preview-list todo-checklist" id="todo-full-list"></div>
+    </div>
+  </template>
+
+  <template id="tpl-todo-randomize-setup">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Timer</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <p class="import-hint">Time each item as it comes up, or set one budget for the whole session.</p>
+      <div class="segmented" id="todo-timer-mode" style="margin-bottom: 16px;">
+        <button type="button" class="segmented-option active" data-mode="perItem">Per item</button>
+        <button type="button" class="segmented-option" data-mode="overall">Overall</button>
+      </div>
+      <label class="field">
+        <span>Duration</span>
+        <div class="duration-picker">
+          <label class="duration-part">
+            <input type="number" id="todo-timer-min" min="0" max="999" inputmode="numeric" placeholder="0" />
+            <span>min</span>
+          </label>
+          <label class="duration-part">
+            <input type="number" id="todo-timer-sec" min="0" max="59" inputmode="numeric" placeholder="0" value="30" />
+            <span>sec</span>
+          </label>
+        </div>
+      </label>
+      <div class="form-actions">
+        <button type="button" class="text-btn primary start-timer-btn">Start</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-todo-player">
+    <header class="topbar player-topbar">
+      <button class="icon-btn back-btn" aria-label="Exit"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      <span class="total-timer hidden" id="todo-total-timer">00:00</span>
+      <span class="interval-count" id="todo-progress-count"></span>
+    </header>
+    <div class="player-progress"><div class="player-progress-fill" id="todo-player-progress-fill"></div></div>
+    <div class="player-stage" style="position: relative;">
+      <canvas id="todo-item-confetti-canvas" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;"></canvas>
+      <p class="set-context hidden" id="todo-parent-context"></p>
+      <p class="interval-name" id="todo-item-text"></p>
+      <div class="stage-display">
+        <div class="countdown-ring hidden" id="todo-countdown-ring" aria-hidden="true">
+          <svg viewBox="0 0 120 120" class="countdown-ring-svg">
+            <circle class="countdown-ring-track" cx="60" cy="60" r="54"></circle>
+            <circle class="countdown-ring-fill" id="todo-countdown-ring-fill" cx="60" cy="60" r="54"></circle>
+          </svg>
+        </div>
+        <span class="big-number hidden" id="todo-item-timer">00:00</span>
+        <button type="button" class="todo-checkbox todo-check-big hidden" id="todo-check-anim" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="player-controls">
+      <button class="round-btn" id="todo-randomize-again-btn" aria-label="Randomize again" title="Randomize again"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M403.8 34.4c12-5 25.7-2.2 34.9 6.9l64 64c6 6 9.4 14.1 9.4 22.6s-3.4 16.6-9.4 22.6l-64 64c-9.2 9.2-22.9 11.9-34.9 6.9S384 204.9 384 192l0-32-32 0c-10.1 0-19.6 4.7-25.6 12.8l-32.4 43.2-40-53.3 21.2-28.3C293.3 110.2 321.8 96 352 96l32 0 0-32c0-12.9 7.8-24.6 19.8-29.6zM154 296l40 53.3-21.2 28.3C154.7 401.8 126.2 416 96 416l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0c10.1 0 19.6-4.7 25.6-12.8L154 296zM438.6 470.6c-9.2 9.2-22.9 11.9-34.9 6.9S384 460.9 384 448l0-32-32 0c-30.2 0-58.7-14.2-76.8-38.4L121.6 172.8c-6-8.1-15.5-12.8-25.6-12.8l-64 0c-17.7 0-32-14.3-32-32S14.3 96 32 96l64 0c30.2 0 58.7 14.2 76.8 38.4L326.4 339.2c6 8.1 15.5 12.8 25.6 12.8l32 0 0-32c0-12.9 7.8-24.6 19.8-29.6s25.7-2.2 34.9 6.9l64 64c6 6 9.4 14.1 9.4 22.6s-3.4 16.6-9.4 22.6l-64 64z"/></svg></button>
+      <button class="round-btn round-btn-lg" id="todo-done-btn" aria-label="Done" title="Done"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg></button>
+      <button class="round-btn" id="todo-show-list-btn" aria-label="Show full list" title="Show full list"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><rect x="32" y="64" width="448" height="64" rx="12"/><rect x="32" y="224" width="448" height="64" rx="12"/><rect x="32" y="384" width="448" height="64" rx="12"/></svg></button>
+    </div>
+  </template>
+
+  <template id="tpl-todo-done">
+    <div class="finish-screen">
+      <canvas id="confetti-canvas"></canvas>
+      <div class="finish-card">
+        <h1 id="todo-done-title">All done! <svg class="icon trophy-icon" style="width:0.85em;height:0.85em;vertical-align:-0.1em;color:var(--accent);" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M144.3 0l224 0c26.5 0 48.1 21.8 47.1 48.2-.2 5.3-.4 10.6-.7 15.8l49.6 0c26.1 0 49.1 21.6 47.1 49.8-7.5 103.7-60.5 160.7-118 190.5-15.8 8.2-31.9 14.3-47.2 18.8-20.2 28.6-41.2 43.7-57.9 51.8l0 73.1 64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0 0-73.1c-16-7.7-35.9-22-55.3-48.3-18.4-4.8-38.4-12.1-57.9-23.1-54.1-30.3-102.9-87.4-109.9-189.9-1.9-28.1 21-49.7 47.1-49.7l49.6 0c-.3-5.2-.5-10.4-.7-15.8-1-26.5 20.6-48.2 47.1-48.2zM101.5 112l-52.4 0c6.2 84.7 45.1 127.1 85.2 149.6-14.4-37.3-26.3-86-32.8-149.6zM380 256.8c40.5-23.8 77.1-66.1 83.3-144.8L411 112c-6.2 60.9-17.4 108.2-31 144.8z"/></svg></h1>
+        <div class="preview-list todo-checklist" id="todo-done-list"></div>
+        <button class="text-btn primary" id="todo-done-btn-final">Back to Home</button>
       </div>
     </div>
   </template>

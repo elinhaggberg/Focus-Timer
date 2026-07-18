@@ -7,8 +7,8 @@ export function filenameFor(name, ext = "json") {
   return `${slug || "focus-timer"}.${ext}`;
 }
 
-function downloadFile(filename, content) {
-  const blob = new Blob([content], { type: "application/json" });
+function downloadFile(filename, content, mimeType = "application/json") {
+  const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -38,5 +38,33 @@ export async function shareOrDownload(filename, content) {
   }
 
   downloadFile(filename, content);
+  return "downloaded";
+}
+
+// Plain-text sharing (a to-do list, not a JSON backup file) — the native
+// share sheet takes freeform text directly here, no File wrapper needed.
+// Falls back to the clipboard, then to a .txt download, wherever share/
+// clipboard aren't available.
+export async function shareText(title, text) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text });
+      return "shared";
+    } catch (err) {
+      if (err && err.name === "AbortError") return "cancelled";
+      // fall through to clipboard/download on any other failure
+    }
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return "copied";
+    } catch {
+      // fall through to download
+    }
+  }
+
+  downloadFile(filenameFor(title, "txt"), text, "text/plain");
   return "downloaded";
 }
