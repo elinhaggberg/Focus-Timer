@@ -7,9 +7,11 @@ import {
   getHomeTitle,
   setHomeTitle,
   getGoals,
+  getAlarmSound,
+  setAlarmSound,
 } from "../storage.js";
 import { focusTimerMeta, todoListMeta } from "../util.js";
-import { unlockAudio } from "../audio.js";
+import { unlockAudio, previewAlarm } from "../audio.js";
 import { openSheet } from "../sheet.js";
 import { shareOrDownload, filenameFor } from "../share.js";
 import { getTheme, setTheme } from "../theme.js";
@@ -21,6 +23,12 @@ import { computeGoalStatus, describeGoal } from "../goals.js";
 
 const GENERIC_TIMER_ICON =
   '<svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><circle cx="256" cy="256" r="216" fill="none" stroke="currentColor" stroke-width="40"/><rect x="236" y="120" width="40" height="170" rx="20"/><rect x="256" y="226" width="140" height="40" rx="20"/></svg>';
+
+const ALARM_SOUND_OPTIONS = [
+  { key: "classic", label: "Classic beep" },
+  { key: "chime", label: "Chime" },
+  { key: "urgent", label: "Urgent" },
+];
 
 const TODO_ICON =
   '<svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><rect x="32" y="48" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="60" width="352" height="32" rx="16"/><rect x="32" y="228" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="240" width="352" height="32" rx="16"/><rect x="32" y="408" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="420" width="352" height="32" rx="16"/></svg>';
@@ -202,6 +210,28 @@ export function renderHome(root, nav) {
     });
 
     renderActiveState();
+
+    const alarmSoundListEl = sheet.el.querySelector("#alarm-sound-list");
+    let selectedAlarmSound = getAlarmSound();
+    const alarmRows = ALARM_SOUND_OPTIONS.map(({ key, label }) => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "alarm-sound-row";
+      row.classList.toggle("active", key === selectedAlarmSound);
+      const name = document.createElement("span");
+      name.textContent = label;
+      const check = document.createElement("span");
+      check.className = "alarm-sound-check";
+      row.append(name, check);
+      row.addEventListener("click", () => {
+        selectedAlarmSound = key;
+        setAlarmSound(key);
+        alarmRows.forEach((r, i) => r.classList.toggle("active", ALARM_SOUND_OPTIONS[i].key === key));
+        previewAlarm(key);
+      });
+      return row;
+    });
+    alarmSoundListEl.replaceChildren(...alarmRows);
   }
 
   function openImport() {

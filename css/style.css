@@ -972,12 +972,12 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
 
 .goal-type-toggle { margin-bottom: 18px; }
 .goal-section { margin-bottom: 18px; }
-.weekday-list, .frequency-list {
+.weekday-list, .frequency-list, .alarm-sound-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.weekday-row, .frequency-row {
+.weekday-row, .frequency-row, .alarm-sound-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -987,19 +987,21 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   border-radius: 10px;
   font-size: 0.95rem;
   color: var(--text);
+  width: 100%;
 }
-.weekday-row.active, .frequency-row.active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-.weekday-check {
+.weekday-row.active, .frequency-row.active, .alarm-sound-row.active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.weekday-check, .alarm-sound-check {
   width: 22px;
   height: 22px;
   border-radius: 50%;
   border: 2px solid var(--border);
   flex-shrink: 0;
 }
-.weekday-row.active .weekday-check {
+.weekday-row.active .weekday-check, .alarm-sound-row.active .alarm-sound-check {
   border-color: var(--accent);
   background: var(--accent);
 }
+.alarm-sound-label { margin: 18px 0 8px; font-size: 0.9rem; color: var(--text-muted); }
 
 /* Home screen goal strip */
 .home-goal-strip {

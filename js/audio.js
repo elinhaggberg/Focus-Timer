@@ -6,6 +6,8 @@
 // through iOS's ordinary media pipeline instead, which is reliable in that
 // same standalone context.
 
+import { getAlarmSound } from "./storage.js";
+
 let enabled = false;
 const urlCache = new Map();
 
@@ -96,9 +98,13 @@ function play(key, factory) {
   el.play().catch(() => {});
 }
 
+function playTone(key, freq, duration, options) {
+  play(key, () => renderToneWav(freq, duration, options));
+}
+
 function tone(key, freq, duration, options) {
   if (!enabled) return;
-  play(key, () => renderToneWav(freq, duration, options));
+  playTone(key, freq, duration, options);
 }
 
 // Silences the priming playback with `.muted` rather than `.volume = 0`:
@@ -130,16 +136,46 @@ function primeTone(key, freq, duration, options) {
 // plays start instantly and reliably.
 export function unlockAudio() {
   play("unlock", () => renderToneWav(440, 0.05, { volume: 0 }));
-  primeTone("alarm1", 1046.5, 0.15, { type: "square", volume: 0.4 });
-  primeTone("alarm2", 1046.5, 0.15, { type: "square", volume: 0.4 });
+  primeTone("alarmClassicBeep", 1318.5, 0.16, { type: "square", volume: 0.6 });
+  primeTone("alarmChimeLow", 880, 0.35, { type: "sine", volume: 0.5 });
+  primeTone("alarmChimeHigh", 1318.5, 0.45, { type: "sine", volume: 0.5 });
+  primeTone("alarmUrgentHigh", 1567.98, 0.12, { type: "square", volume: 0.65 });
+  primeTone("alarmUrgentLow", 1046.5, 0.12, { type: "square", volume: 0.65 });
   primeTone("itemDone", 660, 0.15, { type: "sine", volume: 0.3 });
 }
 
-// The one alarm: a short double-beep played exactly when a countdown hits
-// zero — a Focus/Break transition, or a to-do timer running out.
+// A countdown hitting zero (a Focus/Break transition, or a to-do timer
+// running out) plays one of three selectable alarm variants — louder and
+// more distinct than the old single double-beep, since a subtle single bleep
+// was easy to miss.
+const ALARM_VARIANTS = {
+  classic: (playFn) => {
+    playFn("alarmClassicBeep", 1318.5, 0.16, { type: "square", volume: 0.6 });
+    setTimeout(() => playFn("alarmClassicBeep", 1318.5, 0.16, { type: "square", volume: 0.6 }), 220);
+  },
+  chime: (playFn) => {
+    playFn("alarmChimeLow", 880, 0.35, { type: "sine", volume: 0.5 });
+    setTimeout(() => playFn("alarmChimeHigh", 1318.5, 0.45, { type: "sine", volume: 0.5 }), 260);
+  },
+  urgent: (playFn) => {
+    playFn("alarmUrgentHigh", 1567.98, 0.12, { type: "square", volume: 0.65 });
+    setTimeout(() => playFn("alarmUrgentLow", 1046.5, 0.12, { type: "square", volume: 0.65 }), 160);
+    setTimeout(() => playFn("alarmUrgentHigh", 1567.98, 0.12, { type: "square", volume: 0.65 }), 320);
+    setTimeout(() => playFn("alarmUrgentLow", 1046.5, 0.12, { type: "square", volume: 0.65 }), 480);
+  },
+};
+
 export function alarm() {
-  tone("alarm1", 1046.5, 0.15, { type: "square", volume: 0.4 });
-  setTimeout(() => tone("alarm2", 1046.5, 0.15, { type: "square", volume: 0.4 }), 220);
+  if (!enabled) return;
+  const variant = ALARM_VARIANTS[getAlarmSound()] || ALARM_VARIANTS.classic;
+  variant(playTone);
+}
+
+// Plays a variant regardless of the mute state — used by the Customize
+// picker so tapping an option always previews it, muted or not.
+export function previewAlarm(key) {
+  const variant = ALARM_VARIANTS[key] || ALARM_VARIANTS.classic;
+  variant(playTone);
 }
 
 // Soft single tone confirming a to-do item was checked off.
