@@ -112,9 +112,10 @@ export function renderFocusPlayer(root, nav, timerId) {
       }
     } else if (state.phase === "active") {
       state.remaining -= 1;
-      if (state.remaining > 0) {
-        if (state.remaining <= WARNING_SECONDS) audio.countdownTick();
-      } else {
+      if (state.remaining <= 0) {
+        // No alarm on the very last interval — finish() below already has
+        // its own completion sound, and playing both back to back is noise.
+        if (state.index < sequence.length - 1) audio.alarm();
         advance();
         render();
         return;
@@ -124,7 +125,6 @@ export function renderFocusPlayer(root, nav, timerId) {
   }
 
   function enterActivePhase() {
-    audio.intervalStart();
     state.phase = "active";
     state.remaining = currentInterval().amount;
   }
@@ -165,7 +165,7 @@ export function renderFocusPlayer(root, nav, timerId) {
     state.finished = true;
     stopTicking();
     setWakeLockWanted(false);
-    audio.workoutComplete();
+    audio.celebrate();
     timer.lastCompletedSeconds = state.totalElapsed;
     saveFocusTimer(timer);
     nav.toFinish({
