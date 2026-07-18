@@ -67,6 +67,7 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   const checkAnimEl = root.querySelector("#todo-check-anim");
   const confettiCanvas = root.querySelector("#todo-item-confetti-canvas");
   const doneBtn = root.querySelector("#todo-done-btn");
+  const addTimeBtn = root.querySelector("#todo-add-time-btn");
   const randomizeAgainBtn = root.querySelector("#todo-randomize-again-btn");
   const soundToggleBtn = root.querySelector("#todo-sound-toggle-btn");
   const pauseToggleBtn = root.querySelector("#todo-pause-toggle-btn");
@@ -96,6 +97,7 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   let tickHandle = null;
   let running = timerMode !== "none";
   let busy = false; // guards against double-tapping Done mid-animation
+  let timeUp = false; // per-item timer hit zero — waiting on Done or Add time
 
   if (timerMode === "overall") {
     totalTimerEl.classList.remove("hidden");
@@ -156,7 +158,10 @@ export function renderTodoPlayer(root, nav, todoId, config) {
     if (timerMode === "perItem") {
       const wasPositive = itemRemaining > 0;
       itemRemaining = Math.max(0, itemRemaining - 1);
-      if (wasPositive && itemRemaining === 0) audio.alarm();
+      if (wasPositive && itemRemaining === 0) {
+        audio.alarm();
+        timeUp = true;
+      }
     } else if (timerMode === "overall") {
       overallRemaining = Math.max(0, overallRemaining - 1);
       if (overallRemaining <= 0) {
@@ -196,14 +201,20 @@ export function renderTodoPlayer(root, nav, todoId, config) {
     if (timerMode === "perItem") {
       countdownRingEl.classList.remove("hidden");
       itemTimerEl.classList.remove("hidden");
-      itemTimerEl.textContent = formatClock(itemRemaining);
-      itemTimerEl.className = "big-number" + (itemRemaining <= 3 ? " countdown" : "");
+      if (timeUp) {
+        itemTimerEl.textContent = "Time's up!";
+        itemTimerEl.className = "big-number time-up";
+      } else {
+        itemTimerEl.textContent = formatClock(itemRemaining);
+        itemTimerEl.className = "big-number" + (itemRemaining <= 3 ? " countdown" : "");
+      }
       const fraction = 1 - itemRemaining / duration;
       countdownRingFillEl.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - Math.min(1, Math.max(0, fraction))));
     } else {
       countdownRingEl.classList.add("hidden");
       itemTimerEl.classList.add("hidden");
     }
+    addTimeBtn.classList.toggle("hidden", !timeUp);
 
     const remainingGroupCount = new Set(queue.map((id) => idToGroupIndex.get(id))).size;
     randomizeAgainBtn.classList.toggle("hidden", remainingGroupCount <= 1);
@@ -211,6 +222,7 @@ export function renderTodoPlayer(root, nav, todoId, config) {
 
   function resetItemTimer() {
     itemRemaining = duration;
+    timeUp = false;
   }
 
   doneBtn.addEventListener("click", () => {
@@ -234,6 +246,13 @@ export function renderTodoPlayer(root, nav, todoId, config) {
       busy = false;
       render();
     }, 550);
+  });
+
+  addTimeBtn.addEventListener("click", () => {
+    if (busy || queue.length === 0) return;
+    itemRemaining = duration;
+    timeUp = false;
+    render();
   });
 
   randomizeAgainBtn.addEventListener("click", () => {

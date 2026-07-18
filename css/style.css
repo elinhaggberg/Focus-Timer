@@ -744,6 +744,7 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   color: var(--accent);
 }
 .big-number.countdown { color: var(--danger); }
+.big-number.time-up { font-size: 1.9rem; color: var(--danger); }
 .big-number.kind-break, .big-number.kind-longBreak { color: var(--break-color); }
 .big-label {
   font-size: 1rem;
