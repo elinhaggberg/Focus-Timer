@@ -120,6 +120,23 @@ h1, h2, h3 { margin: 0; font-weight: 600; font-family: var(--font-heading); }
 }
 .timer-name-input:focus { outline: none; border-color: var(--accent); }
 
+.todo-title-input {
+  flex: 0 0 auto;
+  display: block;
+  width: calc(100% - 32px);
+  margin: 4px 16px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 6px 2px;
+}
+.todo-title-input:focus { outline: none; border-color: var(--accent); }
+:root[data-theme="playful"] .todo-title-input { font-size: 1.5rem; }
+
 .icon {
   width: 1em;
   height: 1em;
@@ -138,6 +155,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; font-family: var(--font-heading); }
   color: var(--text-dim);
 }
 .icon-btn:active { background: var(--surface-2); }
+.icon-btn:disabled { opacity: 0.4; pointer-events: none; }
 
 .text-btn {
   padding: 8px 14px;
@@ -1040,12 +1058,15 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   border-color: color-mix(in srgb, var(--bg) 85%, black);
 }
 
-/* The rounds/goal-progress track otherwise blends into the tinted card
-   behind it; a darker shade of that same tint keeps it readable without
-   introducing an unrelated color. */
+/* The rounds/goal-progress track — and icon circles like it — otherwise
+   blend into the tinted card behind them; a darker shade of that same tint
+   keeps them readable without introducing an unrelated color. */
 :root[data-theme="playful"] .rounds-stepper,
 :root[data-theme="playful"] .goal-progress-bar,
-:root[data-theme="playful"] .home-goal-progress-bar {
+:root[data-theme="playful"] .home-goal-progress-bar,
+:root[data-theme="playful"] .card-icon,
+:root[data-theme="playful"] .home-option-icon,
+:root[data-theme="playful"] .player-activity-icon {
   background: color-mix(in srgb, black 12%, var(--card-tint));
 }
 
@@ -1092,14 +1113,25 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
 :root[data-theme="playful"] .saved-card:active,
 :root[data-theme="playful"] .activity-tile:active { transform: scale(0.97); }
 
-/* ---- To-do lists (Phase 2) ---- */
+/* ---- To-do lists ---- */
 .todo-item {
   align-items: flex-start;
 }
 .todo-item.nested {
   margin-left: 24px;
-  background: var(--surface-2);
 }
+/* Overview/preview/done-screen checklist rows (tpl-todo-checklist-row) keep
+   the standard card look; only the editor's own rows (tpl-todo-item, always
+   inside #todo-item-list) go slim — no card chrome, tighter padding. The ID
+   scope is needed to outrank the Playful theme's `.card` tint rule, which
+   otherwise wins on specificity and leaves a colored box behind anyway. */
+.todo-checklist-row.nested { background: var(--surface-2); }
+#todo-item-list .todo-item {
+  background: none;
+  border: none;
+  padding: 4px;
+}
+#todo-item-list { gap: 2px; }
 .todo-checkbox {
   width: 24px;
   height: 24px;
