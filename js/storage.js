@@ -1,6 +1,7 @@
 const ACTIVITIES_KEY = "ft_activities_v1";
 const FOCUS_TIMERS_KEY = "ft_focus_timers_v1";
 const SOUND_KEY = "ft_sound_enabled_v1";
+const ALARM_SOUND_KEY = "ft_alarm_sound_v1";
 const THEME_KEY = "ft_theme_v1";
 const HOME_TITLE_KEY = "ft_home_title_v1";
 const LOG_KEY = "ft_log_v1";
@@ -207,6 +208,14 @@ export function getSoundEnabled() {
 
 export function setSoundEnabled(value) {
   localStorage.setItem(SOUND_KEY, value ? "true" : "false");
+}
+
+export function getAlarmSound() {
+  return localStorage.getItem(ALARM_SOUND_KEY) || "classic";
+}
+
+export function setAlarmSound(value) {
+  localStorage.setItem(ALARM_SOUND_KEY, value);
 }
 
 export function getThemePref() {
