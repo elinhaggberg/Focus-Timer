@@ -6,7 +6,7 @@ import * as audio from "../audio.js";
 import { setWakeLockWanted } from "../wakelock.js";
 import { getTheme, PLAYFUL_SWATCHES } from "../theme.js";
 import { openSheet } from "../sheet.js";
-import { ICON_VOLUME_HIGH, ICON_VOLUME_XMARK } from "../icons.js";
+import { ICON_VOLUME_HIGH, ICON_VOLUME_XMARK, ICON_PLAY, ICON_PAUSE } from "../icons.js";
 
 const RING_CIRCUMFERENCE = 2 * Math.PI * 54;
 
@@ -69,6 +69,7 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   const doneBtn = root.querySelector("#todo-done-btn");
   const randomizeAgainBtn = root.querySelector("#todo-randomize-again-btn");
   const soundToggleBtn = root.querySelector("#todo-sound-toggle-btn");
+  const pauseToggleBtn = root.querySelector("#todo-pause-toggle-btn");
 
   audio.setEnabled(getSoundEnabled());
   renderSoundToggle();
@@ -93,10 +94,32 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   let itemRemaining = duration;
   let overallRemaining = duration;
   let tickHandle = null;
+  let running = timerMode !== "none";
   let busy = false; // guards against double-tapping Done mid-animation
 
   if (timerMode === "overall") {
     totalTimerEl.classList.remove("hidden");
+  }
+
+  // A pause control only makes sense when there's actually a countdown
+  // running — with no timer, there's nothing to pause.
+  if (timerMode !== "none") {
+    pauseToggleBtn.classList.remove("hidden");
+    pauseToggleBtn.addEventListener("click", togglePause);
+    renderPauseToggle();
+  }
+
+  function togglePause() {
+    running = !running;
+    if (running) startTicking();
+    else stopTicking();
+    renderPauseToggle();
+  }
+
+  function renderPauseToggle() {
+    pauseToggleBtn.innerHTML = running ? ICON_PAUSE : ICON_PLAY;
+    pauseToggleBtn.setAttribute("aria-label", running ? "Pause timer" : "Resume timer");
+    pauseToggleBtn.title = running ? "Pause timer" : "Resume timer";
   }
 
   startTicking();
