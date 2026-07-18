@@ -1,4 +1,4 @@
-import { getTodoList, saveTodoList, getSoundEnabled } from "../storage.js";
+import { getTodoList, saveTodoList, getSoundEnabled, setSoundEnabled } from "../storage.js";
 import { flattenTodoItems, formatClock, isTodoListComplete, toggleTodoItemChecked } from "../util.js";
 import { launchConfetti } from "../confetti.js";
 import { maybeLogCompletion } from "../todoCompletion.js";
@@ -6,6 +6,7 @@ import * as audio from "../audio.js";
 import { setWakeLockWanted } from "../wakelock.js";
 import { getTheme, PLAYFUL_SWATCHES } from "../theme.js";
 import { openSheet } from "../sheet.js";
+import { ICON_VOLUME_HIGH, ICON_VOLUME_XMARK } from "../icons.js";
 
 const RING_CIRCUMFERENCE = 2 * Math.PI * 54;
 
@@ -67,9 +68,27 @@ export function renderTodoPlayer(root, nav, todoId, config) {
   const confettiCanvas = root.querySelector("#todo-item-confetti-canvas");
   const doneBtn = root.querySelector("#todo-done-btn");
   const randomizeAgainBtn = root.querySelector("#todo-randomize-again-btn");
+  const soundToggleBtn = root.querySelector("#todo-sound-toggle-btn");
 
   audio.setEnabled(getSoundEnabled());
+  renderSoundToggle();
+  soundToggleBtn.addEventListener("click", toggleSound);
   setWakeLockWanted(true);
+
+  function toggleSound() {
+    const next = !audio.isEnabled();
+    audio.setEnabled(next);
+    setSoundEnabled(next);
+    if (next) audio.unlockAudio();
+    renderSoundToggle();
+  }
+
+  function renderSoundToggle() {
+    const on = audio.isEnabled();
+    soundToggleBtn.innerHTML = on ? ICON_VOLUME_HIGH : ICON_VOLUME_XMARK;
+    soundToggleBtn.classList.toggle("active", on);
+    soundToggleBtn.setAttribute("aria-label", on ? "Mute sound" : "Unmute sound");
+  }
 
   let itemRemaining = duration;
   let overallRemaining = duration;
