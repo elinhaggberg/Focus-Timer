@@ -1,5 +1,5 @@
 import { getTodoList, saveTodoList, deleteTodoList, saveAsTemplate } from "../storage.js";
-import { todoListMeta, todoListToText, isTodoListComplete } from "../util.js";
+import { todoListMeta, todoListToText, isTodoListComplete, toggleTodoItemChecked } from "../util.js";
 import { openSheet } from "../sheet.js";
 import { shareText } from "../share.js";
 import { unlockAudio } from "../audio.js";
@@ -51,20 +51,9 @@ export function openTodoOverview(todoId, nav, { onDeleted } = {}) {
     return node;
   }
 
-  function findItem(id) {
-    for (const item of list.items) {
-      if (item.id === id) return item;
-      const child = (item.children || []).find((c) => c.id === id);
-      if (child) return child;
-    }
-    return null;
-  }
-
   function toggleItem(id) {
     const wasComplete = isTodoListComplete(list);
-    const item = findItem(id);
-    if (!item) return;
-    item.checked = !item.checked;
+    toggleTodoItemChecked(list, id);
     saveTodoList(list);
     maybeLogCompletion(list, wasComplete);
     renderHeader();
