@@ -101,19 +101,23 @@ function tone(key, freq, duration, options) {
   play(key, () => renderToneWav(freq, duration, options));
 }
 
+// Silences the priming playback with `.muted` rather than `.volume = 0`:
+// iOS Safari deliberately ignores HTMLMediaElement.volume on <audio>/<video>
+// elements (only the hardware buttons may set volume there), so a volume-0
+// "silent" priming play is actually fully audible on iOS. `.muted` is
+// respected on every platform, including iOS.
 function primeTone(key, freq, duration, options) {
   const el = getAudioElement(key, () => renderToneWav(freq, duration, options));
-  const restoreVolume = el.volume;
-  el.volume = 0;
+  el.muted = true;
   el.currentTime = 0;
   el.play()
     .then(() => {
       el.pause();
       el.currentTime = 0;
-      el.volume = restoreVolume;
+      el.muted = false;
     })
     .catch(() => {
-      el.volume = restoreVolume;
+      el.muted = false;
     });
 }
 
