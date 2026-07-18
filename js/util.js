@@ -114,6 +114,56 @@ export function isTodoListComplete(list) {
   return total > 0 && checked === total;
 }
 
+// Toggles one item's checked state and cascades the natural consequences:
+// checking a parent checks all its children (marking the whole group done);
+// checking the last remaining unchecked child checks the parent (the group
+// is now done); either direction also runs in reverse on uncheck, since a
+// parent's checked state is only ever true when the group actually is.
+// Returns the ids of every item whose checked value actually changed, so
+// callers (e.g. the randomize player) can react to more than just the one
+// item that was directly clicked.
+export function toggleTodoItemChecked(list, itemId, explicitValue) {
+  const changed = [];
+  let target = null;
+  let parent = null;
+  for (const item of list.items) {
+    if (item.id === itemId) {
+      target = item;
+      break;
+    }
+    const child = (item.children || []).find((c) => c.id === itemId);
+    if (child) {
+      target = child;
+      parent = item;
+      break;
+    }
+  }
+  if (!target) return changed;
+
+  const nextValue = explicitValue !== undefined ? explicitValue : !target.checked;
+  if (target.checked !== nextValue) {
+    target.checked = nextValue;
+    changed.push(target.id);
+  }
+
+  if (!parent) {
+    for (const child of target.children || []) {
+      if (child.checked !== nextValue) {
+        child.checked = nextValue;
+        changed.push(child.id);
+      }
+    }
+  } else if (nextValue && parent.children.length > 0 && parent.children.every((c) => c.checked) && !parent.checked) {
+    parent.checked = true;
+    changed.push(parent.id);
+  } else if (!nextValue && parent.checked) {
+    parent.checked = false;
+    changed.push(parent.id);
+  }
+
+  return changed;
+}
+
 // Plain-text rendering for sharing — indents children under their parent.
 export function todoListToText(list) {
   const lines = [list.name || "Untitled list", ""];

@@ -1,4 +1,5 @@
 import { getTodoList, saveTodoList, createEmptyTodoList, makeTodoItem, getTodoTemplates, deleteTodoTemplate, instantiateFromTemplate } from "../storage.js";
+import { toggleTodoItemChecked } from "../util.js";
 import { openSheet } from "../sheet.js";
 import { enableDragReorder, forceTeardownActiveDrag } from "../dragReorder.js";
 import { initTabs } from "../tabs.js";
@@ -128,8 +129,10 @@ export function renderTodoHub(root, nav, todoId) {
     const checkbox = row.querySelector(".todo-checkbox");
     checkbox.classList.toggle("checked", item.checked);
     checkbox.addEventListener("click", () => {
-      item.checked = !item.checked;
-      checkbox.classList.toggle("checked", item.checked);
+      // A full re-render since checking a parent/last child can change more
+      // than one row's checkbox at once.
+      toggleTodoItemChecked(list, item.id);
+      renderItems();
     });
 
     const input = row.querySelector(".todo-item-text");

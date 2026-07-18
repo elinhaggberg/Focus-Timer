@@ -1,5 +1,5 @@
 import { getTodoList, saveTodoList, getSoundEnabled } from "../storage.js";
-import { flattenTodoItems, formatClock, isTodoListComplete } from "../util.js";
+import { flattenTodoItems, formatClock, isTodoListComplete, toggleTodoItemChecked } from "../util.js";
 import { launchConfetti } from "../confetti.js";
 import { maybeLogCompletion } from "../todoCompletion.js";
 import * as audio from "../audio.js";
@@ -173,8 +173,10 @@ export function renderTodoPlayer(root, nav, todoId, config) {
     busy = true;
     const currentId = queue[0];
     const wasComplete = isTodoListComplete(list);
-    const item = findLiveItem(currentId);
-    if (item) item.checked = true;
+    // Checking a parent cascades to its children (and vice versa) — anything
+    // that got swept along needs to drop out of the remaining queue too, not
+    // just the one item that was actually tapped Done on.
+    const changedIds = toggleTodoItemChecked(list, currentId, true);
     saveTodoList(list);
     maybeLogCompletion(list, wasComplete);
 
@@ -182,7 +184,7 @@ export function renderTodoPlayer(root, nav, todoId, config) {
     playCheckBurst();
 
     setTimeout(() => {
-      queue.shift();
+      queue = queue.filter((id) => !changedIds.includes(id));
       resetItemTimer();
       busy = false;
       render();
