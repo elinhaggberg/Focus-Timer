@@ -52,6 +52,16 @@ function beginDrag(e, card, listEl, onReorder, options) {
   const pointerId = e.pointerId;
   let nestTarget = null;
 
+  // Captured once, before the reorder logic below ever moves the
+  // placeholder — nest hit-testing uses this frozen snapshot rather than
+  // live rects. Without this, the reorder fallback (which runs on any
+  // frame the pointer isn't inside a nest zone) repositions the placeholder
+  // and shifts sibling layout, which in turn shifts the nest zone the very
+  // next frame, chasing the pointer instead of ever settling under it.
+  const nestSiblingSnapshot = options.onHoverNest
+    ? [...listEl.children].filter((c) => c !== placeholder).map((el) => ({ el, rect: el.getBoundingClientRect() }))
+    : null;
+
   function onMove(ev) {
     if (ev.pointerId !== pointerId) return;
     const dy = ev.clientY - startY;
@@ -61,7 +71,7 @@ function beginDrag(e, card, listEl, onReorder, options) {
     const siblings = [...listEl.children].filter((c) => c !== placeholder);
 
     if (options.onHoverNest) {
-      nestTarget = options.onHoverNest(siblings, pointerY, card);
+      nestTarget = options.onHoverNest(nestSiblingSnapshot, pointerY, card);
     }
     if (nestTarget) {
       placeholder.remove();
@@ -100,6 +110,10 @@ function beginDrag(e, card, listEl, onReorder, options) {
     if (nestTarget && options.onDropNest) {
       options.onDropNest(nestTarget, card);
       if (placeholder.isConnected) placeholder.remove();
+      // beginDrag() detached `card` to document.body for the drag; the nest
+      // handler is expected to fully re-render the list from data, so this
+      // now-stale node must be removed rather than left dangling off-screen.
+      if (card.parentNode) card.parentNode.removeChild(card);
       return;
     }
 

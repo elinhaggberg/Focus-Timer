@@ -1,5 +1,6 @@
 import {
   getFocusTimers,
+  getTodoLists,
   getActivity,
   exportBackupData,
   importData,
@@ -7,7 +8,7 @@ import {
   setHomeTitle,
   getGoals,
 } from "../storage.js";
-import { focusTimerMeta } from "../util.js";
+import { focusTimerMeta, todoListMeta } from "../util.js";
 import { unlockAudio } from "../audio.js";
 import { openSheet } from "../sheet.js";
 import { shareOrDownload, filenameFor } from "../share.js";
@@ -15,10 +16,14 @@ import { getTheme, setTheme } from "../theme.js";
 import { activityIconSvg } from "../activityIcons.js";
 import { openFocusPreview } from "./focusEditor.js";
 import { openActivitiesLibrary } from "./activitiesLibrary.js";
+import { openTodoOverview } from "./todoOverview.js";
 import { computeGoalStatus, describeGoal } from "../goals.js";
 
 const GENERIC_TIMER_ICON =
   '<svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><circle cx="256" cy="256" r="216" fill="none" stroke="currentColor" stroke-width="40"/><rect x="236" y="120" width="40" height="170" rx="20"/><rect x="256" y="226" width="140" height="40" rx="20"/></svg>';
+
+const TODO_ICON =
+  '<svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><rect x="32" y="48" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="60" width="352" height="32" rx="16"/><rect x="32" y="228" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="240" width="352" height="32" rx="16"/><rect x="32" y="408" width="56" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="32"/><rect x="128" y="420" width="352" height="32" rx="16"/></svg>';
 
 export function renderHome(root, nav) {
   const tpl = document.getElementById("tpl-home");
@@ -27,9 +32,7 @@ export function renderHome(root, nav) {
   document.getElementById("home-title").textContent = getHomeTitle();
 
   document.getElementById("new-focus-timer-btn").addEventListener("click", () => nav.toFocusEditor(null));
-  document.getElementById("new-todo-btn").addEventListener("click", () => {
-    // To-do lists ship in a follow-up pass; the card is already wired for it.
-  });
+  document.getElementById("new-todo-btn").addEventListener("click", () => nav.toTodoEditor(null));
   document.getElementById("settings-btn").addEventListener("click", openSettingsMenu);
   document.getElementById("home-goal-strip").addEventListener("click", () => nav.toGoals());
 
@@ -53,11 +56,11 @@ export function renderHome(root, nav) {
 
   function renderList() {
     const listEl = document.getElementById("saved-list");
-    const timers = getFocusTimers()
-      .slice()
-      .sort((a, b) => b.createdAt - a.createdAt);
+    const focusItems = getFocusTimers().map((t) => ({ kind: "focus", data: t }));
+    const todoItems = getTodoLists().map((l) => ({ kind: "todo", data: l }));
+    const items = [...focusItems, ...todoItems].sort((a, b) => b.data.createdAt - a.data.createdAt);
 
-    if (timers.length === 0) {
+    if (items.length === 0) {
       const empty = document.createElement("p");
       empty.className = "empty-state";
       empty.textContent = "Nothing saved yet. Tap a card above to create your first one.";
@@ -66,7 +69,10 @@ export function renderHome(root, nav) {
     }
 
     const cardTpl = document.getElementById("tpl-saved-card");
-    const nodes = timers.map((timer) => {
+    const nodes = items.map((entry) => (entry.kind === "focus" ? buildFocusCard(entry.data) : buildTodoCard(entry.data)));
+    listEl.replaceChildren(...nodes);
+
+    function buildFocusCard(timer) {
       const node = cardTpl.content.cloneNode(true);
       const card = node.querySelector(".saved-card");
       const iconEl = node.querySelector(".card-icon");
@@ -88,8 +94,31 @@ export function renderHome(root, nav) {
         openFocusPreview(timer.id, nav, { onDeleted: renderList });
       });
       return node;
-    });
-    listEl.replaceChildren(...nodes);
+    }
+
+    function buildTodoCard(list) {
+      const node = cardTpl.content.cloneNode(true);
+      const card = node.querySelector(".saved-card");
+      node.querySelector(".card-icon").innerHTML = TODO_ICON;
+      node.querySelector(".card-title").textContent = list.name || "Untitled list";
+      node.querySelector(".card-meta").textContent = `To-do list · ${todoListMeta(list)}`;
+      node.querySelector(".edit-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        nav.toTodoEditor(list.id);
+      });
+      const playBtn = node.querySelector(".play-btn");
+      playBtn.setAttribute("aria-label", "Open");
+      playBtn.title = "Open";
+      playBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openTodoOverview(list.id, nav, { onDeleted: renderList });
+      });
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".card-actions")) return;
+        openTodoOverview(list.id, nav, { onDeleted: renderList });
+      });
+      return node;
+    }
   }
 
   function startTimer(id) {
@@ -198,7 +227,10 @@ export function renderHome(root, nav) {
       }
       try {
         const result = importData(parsed);
-        messageEl.textContent = `Imported ${result.timerCount} focus timer${result.timerCount !== 1 ? "s" : ""}.`;
+        const parts = [];
+        if (result.timerCount) parts.push(`${result.timerCount} focus timer${result.timerCount !== 1 ? "s" : ""}`);
+        if (result.todoListCount) parts.push(`${result.todoListCount} to-do list${result.todoListCount !== 1 ? "s" : ""}`);
+        messageEl.textContent = parts.length ? `Imported ${parts.join(" and ")}.` : "Nothing new to import.";
         renderList();
         renderGoalStrip();
         setTimeout(() => sheet.close(), 900);

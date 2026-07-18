@@ -5,6 +5,8 @@ const THEME_KEY = "ft_theme_v1";
 const HOME_TITLE_KEY = "ft_home_title_v1";
 const LOG_KEY = "ft_log_v1";
 const GOALS_KEY = "ft_goals_v1";
+const TODO_LISTS_KEY = "ft_todo_lists_v1";
+const TODO_TEMPLATES_KEY = "ft_todo_templates_v1";
 
 function uid() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -136,6 +138,67 @@ export function makeSetContainer({ rounds = 2 } = {}) {
   return { id: uid(), kind: "set", rounds, name: "", intervals: [] };
 }
 
+// ---- To-do lists ----
+
+export function getTodoLists() {
+  return readJSON(TODO_LISTS_KEY, []);
+}
+
+export function getTodoList(id) {
+  return getTodoLists().find((l) => l.id === id) || null;
+}
+
+export function saveTodoList(list) {
+  const lists = getTodoLists();
+  const idx = lists.findIndex((l) => l.id === list.id);
+  if (idx >= 0) lists[idx] = list;
+  else lists.push(list);
+  writeJSON(TODO_LISTS_KEY, lists);
+  return list;
+}
+
+export function deleteTodoList(id) {
+  writeJSON(TODO_LISTS_KEY, getTodoLists().filter((l) => l.id !== id));
+}
+
+export function createEmptyTodoList() {
+  return { id: uid(), name: "", createdAt: Date.now(), items: [] };
+}
+
+// A child item can't have its own children — nesting is a single level deep.
+export function makeTodoItem({ text = "" } = {}) {
+  return { id: uid(), text, checked: false, children: [] };
+}
+
+// ---- Saved to-do templates (structure only — no checked state) ----
+
+export function getTodoTemplates() {
+  return readJSON(TODO_TEMPLATES_KEY, []);
+}
+
+function stripChecked(items) {
+  return items.map((item) => ({ ...item, id: uid(), checked: false, children: stripChecked(item.children || []) }));
+}
+
+export function saveAsTemplate(list) {
+  const templates = getTodoTemplates();
+  const template = { id: uid(), name: list.name, createdAt: Date.now(), items: stripChecked(list.items) };
+  templates.push(template);
+  writeJSON(TODO_TEMPLATES_KEY, templates);
+  return template;
+}
+
+export function deleteTodoTemplate(id) {
+  writeJSON(TODO_TEMPLATES_KEY, getTodoTemplates().filter((t) => t.id !== id));
+}
+
+// Clones a template into a brand-new, independent to-do list ready to use —
+// editing or checking off the new list never touches the template it came from.
+export function instantiateFromTemplate(template) {
+  const list = { id: uid(), name: template.name, createdAt: Date.now(), items: stripChecked(template.items) };
+  return saveTodoList(list);
+}
+
 // ---- Preferences ----
 
 export function getSoundEnabled() {
@@ -228,6 +291,8 @@ export function exportBackupData() {
     focusTimers: getFocusTimers(),
     log: getLogEntries(),
     goals: getGoals(),
+    todoLists: getTodoLists(),
+    todoTemplates: getTodoTemplates(),
   };
 }
 
@@ -263,11 +328,25 @@ export function importData(data) {
   const newGoals = importedGoals.map((g) => ({ ...g, id: uid() }));
   writeJSON(GOALS_KEY, [...getGoals(), ...newGoals]);
 
+  function remapItems(items) {
+    return (items || []).map((item) => ({ ...item, id: uid(), children: remapItems(item.children) }));
+  }
+
+  const importedTodoLists = Array.isArray(data.todoLists) ? data.todoLists : [];
+  const newTodoLists = importedTodoLists.map((l) => ({ ...l, id: uid(), createdAt: Date.now(), items: remapItems(l.items) }));
+  writeJSON(TODO_LISTS_KEY, [...getTodoLists(), ...newTodoLists]);
+
+  const importedTodoTemplates = Array.isArray(data.todoTemplates) ? data.todoTemplates : [];
+  const newTodoTemplates = importedTodoTemplates.map((t) => ({ ...t, id: uid(), createdAt: Date.now(), items: remapItems(t.items) }));
+  writeJSON(TODO_TEMPLATES_KEY, [...getTodoTemplates(), ...newTodoTemplates]);
+
   return {
     activityCount: importedActivities.length,
     timerCount: newTimers.length,
     logCount: newLogEntries.length,
     goalCount: newGoals.length,
+    todoListCount: newTodoLists.length,
+    todoTemplateCount: newTodoTemplates.length,
   };
 }
 

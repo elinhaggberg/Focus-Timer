@@ -1,4 +1,4 @@
-const CACHE_NAME = "focus-timer-v2";
+const CACHE_NAME = "focus-timer-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -18,6 +18,7 @@ const APP_SHELL = [
   "./js/tabs.js",
   "./js/dragReorder.js",
   "./js/goals.js",
+  "./js/todoCompletion.js",
   "./js/views/home.js",
   "./js/views/focusEditor.js",
   "./js/views/focusPlayer.js",
@@ -26,6 +27,9 @@ const APP_SHELL = [
   "./js/views/goals.js",
   "./js/views/activityForm.js",
   "./js/views/activitiesLibrary.js",
+  "./js/views/todoEditor.js",
+  "./js/views/todoOverview.js",
+  "./js/views/todoPlayer.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
