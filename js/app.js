@@ -2,6 +2,8 @@ import { renderHome } from "./views/home.js";
 import { renderFocusEditor } from "./views/focusEditor.js";
 import { renderFocusPlayer } from "./views/focusPlayer.js";
 import { renderFinish } from "./views/finish.js";
+import { renderLog } from "./views/log.js";
+import { renderGoals } from "./views/goals.js";
 import { applyTheme } from "./theme.js";
 
 applyTheme();
@@ -22,6 +24,12 @@ const nav = {
   toFinish: (summary) => {
     pendingFinishSummary = summary;
     location.hash = "#/finish";
+  },
+  toLog: () => {
+    location.hash = "#/log";
+  },
+  toGoals: () => {
+    location.hash = "#/goals";
   },
 };
 
@@ -45,6 +53,14 @@ function route() {
       return;
     }
     renderFinish(root, nav, pendingFinishSummary);
+    return;
+  }
+  if (parts[0] === "log") {
+    renderLog(root, nav);
+    return;
+  }
+  if (parts[0] === "goals") {
+    renderGoals(root, nav);
     return;
   }
   renderHome(root, nav);

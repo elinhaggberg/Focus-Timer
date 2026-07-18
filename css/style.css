@@ -34,6 +34,26 @@
   --break-color: #5fd9a0;
 }
 
+/* --accent/--accent-text are overridden inline via theme.js for the user's
+   chosen swatch; these are just the default (Lipstick) shown before that
+   runs, or if no swatch has been picked yet. */
+:root[data-theme="playful"] {
+  --bg: #f5eedc;
+  --surface: #fffcf4;
+  --surface-2: #efe6d0;
+  --border: #e3d7b8;
+  --text: #241c1c;
+  --text-dim: #8a7f6d;
+  --accent: #ee4c9b;
+  --accent-text: #ffffff;
+  --danger: #e0454a;
+  --focus-color: #ee4c9b;
+  --break-color: #3fb87f;
+  --font-heading: ui-serif, Georgia, "Times New Roman", serif;
+  --radius: 22px;
+  --card-tint: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -801,10 +821,276 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
 }
 .field-checkbox input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
 
-/* Theme toggle */
-.theme-toggle-btn .icon-moon { display: none; }
-:root[data-theme="dark"] .theme-toggle-btn .icon-sun { display: none; }
-:root[data-theme="dark"] .theme-toggle-btn .icon-moon { display: block; }
+/* Settings menu */
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item .icon { width: 1.1em; height: 1.1em; color: var(--text-dim); flex-shrink: 0; }
+
+/* Instructions */
+.instructions-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 8px;
+}
+.instructions-body section h3 { font-size: 1.05rem; margin-bottom: 4px; }
+.instructions-body section p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.instructions-body section p + p { margin-top: 8px; }
+.instructions-body strong { color: var(--text); }
+
+/* Customize sheet */
+.home-title-field { margin: 4px 0 20px; }
+
+.theme-option-list {
+  display: flex;
+  gap: 10px;
+  padding: 4px 0 20px;
+}
+.theme-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.theme-option.active { border-color: var(--accent); color: var(--text); }
+.theme-swatch-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+.theme-swatch-preview.dark { background: linear-gradient(90deg, #0b0d0f 50%, #b9a6ff 50%); }
+.theme-swatch-preview.light { background: linear-gradient(90deg, #ffffff 50%, #3e7bd9 50%); }
+.theme-swatch-preview.playful {
+  background: conic-gradient(
+    #ee4c9b 0deg 72deg,
+    #f2542d 72deg 144deg,
+    #f5b942 144deg 216deg,
+    #b9a6ff 216deg 288deg,
+    #3b2352 288deg 360deg
+  );
+}
+
+.playful-accent-picker { padding-bottom: 8px; }
+.playful-accent-label { color: var(--text-dim); font-size: 0.85rem; margin: 0 0 10px; }
+.swatch-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.swatch-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  position: relative;
+}
+.swatch-btn.active { border-color: var(--text); }
+.swatch-btn[data-accent="lipstick"] { background: #ee4c9b; }
+.swatch-btn[data-accent="grapefruit"] { background: #f2542d; }
+.swatch-btn[data-accent="sunshine"] { background: #f5b942; }
+.swatch-btn[data-accent="lilac"] { background: #b9a6ff; }
+.swatch-btn[data-accent="midnight"] { background: #3b2352; }
+
+/* Import */
+.import-hint { color: var(--text-dim); font-size: 0.88rem; margin: 4px 0 14px; }
+.import-file-btn { width: 100%; text-align: center; }
+.import-message {
+  font-size: 0.88rem;
+  color: var(--accent);
+  min-height: 1.2em;
+  margin: 14px 0 0;
+}
+.import-message.error { color: var(--danger); }
+
+/* Activities library */
+.library-hint { color: var(--text-dim); font-size: 0.85rem; margin: 0 0 14px; }
+.new-activity-btn {
+  text-align: left;
+  color: var(--accent);
+  font-weight: 600;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.activity-row .card-meta { text-transform: capitalize; }
+
+/* Log */
+.log-row { cursor: pointer; }
+.log-row .card-icon { color: var(--accent); }
+
+/* Goals */
+.goal-card { flex-direction: column; align-items: stretch; gap: 8px; }
+.goal-title { font-size: 1.05rem; }
+.goal-meta { margin: 0; }
+.goal-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.goal-progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s ease; }
+.goal-streak { margin: 0; }
+.goal-card-actions { justify-content: flex-end; }
+
+.goal-type-toggle { margin-bottom: 18px; }
+.goal-section { margin-bottom: 18px; }
+.weekday-list, .frequency-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.weekday-row, .frequency-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.weekday-row.active, .frequency-row.active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.weekday-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.weekday-row.active .weekday-check {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* Home screen goal strip */
+.home-goal-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 14px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: left;
+}
+.home-goal-icon { width: 1.2em; height: 1.2em; color: var(--accent); flex-shrink: 0; }
+.home-goal-label { font-size: 0.88rem; font-weight: 600; flex-shrink: 0; }
+.home-goal-progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.home-goal-progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s ease; }
+.home-goal-streak { font-size: 0.85rem; color: var(--text-dim); flex-shrink: 0; }
+
+/* Finish screen: goal status */
+.goal-status-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.goal-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.goal-status-row + .goal-status-row { margin-top: 8px; }
+.goal-status-icon { display: inline-flex; flex-shrink: 0; color: var(--accent); }
+.goal-status-icon svg { width: 18px; height: 18px; }
+.goal-status-label { flex: 1; }
+.goal-status-streak { flex-shrink: 0; font-weight: 600; color: var(--text); }
+
+/* Playful theme: tint every card a low-opacity shade of the chosen accent
+   instead of the flat neutral surface color, so re-picking an accent swatch
+   re-colors the whole app, not just buttons. The border is a darker shade
+   of the page background instead, for a softer outline than the accent. */
+:root[data-theme="playful"] .card,
+:root[data-theme="playful"] .home-option-card,
+:root[data-theme="playful"] .activity-tile,
+:root[data-theme="playful"] .icon-picker-item {
+  background: var(--card-tint);
+  border-color: color-mix(in srgb, var(--bg) 85%, black);
+}
+
+/* The rounds/goal-progress track otherwise blends into the tinted card
+   behind it; a darker shade of that same tint keeps it readable without
+   introducing an unrelated color. */
+:root[data-theme="playful"] .rounds-stepper,
+:root[data-theme="playful"] .goal-progress-bar,
+:root[data-theme="playful"] .home-goal-progress-bar {
+  background: color-mix(in srgb, black 12%, var(--card-tint));
+}
+
+:root[data-theme="playful"] .icon-btn,
+:root[data-theme="playful"] .text-btn,
+:root[data-theme="playful"] .rounds-stepper,
+:root[data-theme="playful"] .field input[type="text"],
+:root[data-theme="playful"] .field input[type="number"],
+:root[data-theme="playful"] .icon-picker-search,
+:root[data-theme="playful"] .segmented {
+  border-radius: 14px;
+}
+:root[data-theme="playful"] .choice-btn,
+:root[data-theme="playful"] .weekday-row,
+:root[data-theme="playful"] .frequency-row,
+:root[data-theme="playful"] .home-goal-strip {
+  border-radius: 18px;
+}
+:root[data-theme="playful"] .segmented-option { border-radius: 12px; }
+:root[data-theme="playful"] .sheet { border-radius: 28px 28px 0 0; }
+:root[data-theme="playful"] .play-preview-btn { border-radius: 24px; }
+:root[data-theme="playful"] .theme-option { border-radius: 18px; }
+:root[data-theme="playful"] .finish-card { border-radius: 28px; }
+:root[data-theme="playful"] .summary-box,
+:root[data-theme="playful"] .goal-status-box { border-radius: 16px; }
+
+/* Playful theme: bouncier, more energetic press feedback than the flat
+   opacity/scale used elsewhere, via a back-out easing with slight overshoot. */
+:root[data-theme="playful"] .fab,
+:root[data-theme="playful"] .round-btn,
+:root[data-theme="playful"] .icon-btn,
+:root[data-theme="playful"] .text-btn,
+:root[data-theme="playful"] .swatch-btn,
+:root[data-theme="playful"] .theme-option,
+:root[data-theme="playful"] .home-option-card,
+:root[data-theme="playful"] .saved-card,
+:root[data-theme="playful"] .activity-tile {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+:root[data-theme="playful"] .icon-btn:active { transform: scale(0.88); }
+:root[data-theme="playful"] .text-btn:active { transform: scale(0.94); }
+:root[data-theme="playful"] .swatch-btn:active { transform: scale(0.85); }
+:root[data-theme="playful"] .theme-option:active { transform: scale(0.96); }
+:root[data-theme="playful"] .saved-card:active,
+:root[data-theme="playful"] .activity-tile:active { transform: scale(0.97); }
 
 /* ---- To-do lists (Phase 2) ---- */
 .todo-item {

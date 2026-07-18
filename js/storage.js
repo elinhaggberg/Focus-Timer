@@ -2,6 +2,9 @@ const ACTIVITIES_KEY = "ft_activities_v1";
 const FOCUS_TIMERS_KEY = "ft_focus_timers_v1";
 const SOUND_KEY = "ft_sound_enabled_v1";
 const THEME_KEY = "ft_theme_v1";
+const HOME_TITLE_KEY = "ft_home_title_v1";
+const LOG_KEY = "ft_log_v1";
+const GOALS_KEY = "ft_goals_v1";
 
 function uid() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -65,6 +68,17 @@ export function updateActivity(id, patch) {
 
 export function deleteActivity(id) {
   writeJSON(ACTIVITIES_KEY, getActivities().filter((a) => a.id !== id));
+}
+
+// Ensures an activity entry exists for this name; creates one if not found —
+// used when merging an imported backup so re-importing the same file doesn't
+// pile up duplicate activities.
+export function upsertActivityByName({ name, iconKey }) {
+  const activities = getActivities();
+  const norm = name.trim().toLowerCase();
+  const existing = activities.find((a) => a.name.trim().toLowerCase() === norm);
+  if (existing) return existing;
+  return addActivity({ name, iconKey });
 }
 
 // ---- Focus timers (saved Pomodoro or Custom templates) ----
@@ -138,6 +152,123 @@ export function getThemePref() {
 
 export function setThemePref(pref) {
   writeJSON(THEME_KEY, pref);
+}
+
+export function getHomeTitle() {
+  return localStorage.getItem(HOME_TITLE_KEY) || "Focus";
+}
+
+export function setHomeTitle(value) {
+  const trimmed = (value || "").trim();
+  if (trimmed) localStorage.setItem(HOME_TITLE_KEY, trimmed);
+  else localStorage.removeItem(HOME_TITLE_KEY);
+}
+
+// ---- Log (auto-recorded completions: focus sessions, later to-do lists) ----
+
+export function getLogEntries() {
+  return readJSON(LOG_KEY, []);
+}
+
+export function addLogEntry(entry) {
+  const entries = getLogEntries();
+  const full = { id: uid(), createdAt: Date.now(), ...entry };
+  entries.push(full);
+  writeJSON(LOG_KEY, entries);
+  return full;
+}
+
+export function deleteLogEntry(id) {
+  writeJSON(LOG_KEY, getLogEntries().filter((e) => e.id !== id));
+}
+
+export function clearLog() {
+  writeJSON(LOG_KEY, []);
+}
+
+// ---- Goals ----
+
+export function getGoals() {
+  return readJSON(GOALS_KEY, []);
+}
+
+export function getGoal(id) {
+  return getGoals().find((g) => g.id === id) || null;
+}
+
+export function addGoal(goal) {
+  const goals = getGoals();
+  const full = { id: uid(), createdAt: Date.now(), showOnHome: false, ...goal };
+  goals.push(full);
+  writeJSON(GOALS_KEY, goals);
+  return full;
+}
+
+export function updateGoal(id, patch) {
+  const goals = getGoals();
+  const idx = goals.findIndex((g) => g.id === id);
+  if (idx < 0) return null;
+  goals[idx] = { ...goals[idx], ...patch };
+  writeJSON(GOALS_KEY, goals);
+  return goals[idx];
+}
+
+export function deleteGoal(id) {
+  writeJSON(GOALS_KEY, getGoals().filter((g) => g.id !== id));
+}
+
+// ---- Export / import ----
+
+export function exportBackupData() {
+  return {
+    type: "backup",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    activities: getActivities(),
+    focusTimers: getFocusTimers(),
+    log: getLogEntries(),
+    goals: getGoals(),
+  };
+}
+
+// Always merges (adds new entries) rather than replacing anything, so a bad
+// or repeated import can't destroy existing data — activities merge by name
+// (same rule as the rest of the app), everything else is always added as new.
+export function importData(data) {
+  if (!data || data.type !== "backup") {
+    throw new Error("That doesn't look like a Focus Timer backup file.");
+  }
+
+  const importedActivities = Array.isArray(data.activities) ? data.activities : [];
+  const oldIdToLocalId = new Map();
+  for (const activity of importedActivities) {
+    const local = upsertActivityByName({ name: activity.name, iconKey: activity.iconKey });
+    oldIdToLocalId.set(activity.id, local.id);
+  }
+
+  const importedTimers = Array.isArray(data.focusTimers) ? data.focusTimers : [];
+  const newTimers = importedTimers.map((t) => ({
+    ...t,
+    id: uid(),
+    createdAt: Date.now(),
+    activityId: t.activityId ? oldIdToLocalId.get(t.activityId) || null : null,
+  }));
+  writeJSON(FOCUS_TIMERS_KEY, [...getFocusTimers(), ...newTimers]);
+
+  const importedLog = Array.isArray(data.log) ? data.log : [];
+  const newLogEntries = importedLog.map((e) => ({ ...e, id: uid() }));
+  writeJSON(LOG_KEY, [...getLogEntries(), ...newLogEntries]);
+
+  const importedGoals = Array.isArray(data.goals) ? data.goals : [];
+  const newGoals = importedGoals.map((g) => ({ ...g, id: uid() }));
+  writeJSON(GOALS_KEY, [...getGoals(), ...newGoals]);
+
+  return {
+    activityCount: importedActivities.length,
+    timerCount: newTimers.length,
+    logCount: newLogEntries.length,
+    goalCount: newGoals.length,
+  };
 }
 
 export { uid };

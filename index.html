@@ -33,12 +33,19 @@
 
   <template id="tpl-home">
     <header class="topbar home-topbar">
-      <h1>Focus</h1>
-      <button class="icon-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
-        <svg class="icon icon-sun" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M256 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM256 480a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM32 288a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM480 288a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM74.98 437.02a32 32 0 1 0 45.25-45.25 32 32 0 1 0-45.25 45.25zM391.8 120.2a32 32 0 1 0 45.25-45.25 32 32 0 1 0-45.25 45.25zM74.98 74.98a32 32 0 1 0 45.25 45.25 32 32 0 1 0-45.25-45.25zM437.02 437.02a32 32 0 1 0-45.25-45.25 32 32 0 1 0 45.25 45.25zM256 160a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"/></svg>
-        <svg class="icon icon-moon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.2 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"/></svg>
-      </button>
+      <h1 id="home-title">Focus</h1>
+      <button class="icon-btn settings-btn" id="settings-btn" aria-label="Menu"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><rect x="0" y="56" width="448" height="56" rx="16"/><rect x="0" y="228" width="448" height="56" rx="16"/><rect x="0" y="400" width="448" height="56" rx="16"/></svg></button>
     </header>
+    <button type="button" class="home-goal-strip hidden" id="home-goal-strip">
+      <svg class="icon home-goal-icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+        <circle cx="256" cy="256" r="200" fill="none" stroke="currentColor" stroke-width="32" />
+        <circle cx="256" cy="256" r="120" fill="none" stroke="currentColor" stroke-width="32" />
+        <circle cx="256" cy="256" r="40" />
+      </svg>
+      <span class="home-goal-label"></span>
+      <div class="home-goal-progress-bar"><div class="home-goal-progress-fill"></div></div>
+      <span class="home-goal-streak"></span>
+    </button>
     <div class="home-options">
       <button type="button" class="home-option-card" id="new-focus-timer-btn">
         <span class="home-option-icon">
@@ -340,7 +347,277 @@
       <div class="finish-card">
         <h1>Well done! <svg class="icon trophy-icon" style="width:0.85em;height:0.85em;vertical-align:-0.1em;color:var(--accent);" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M144.3 0l224 0c26.5 0 48.1 21.8 47.1 48.2-.2 5.3-.4 10.6-.7 15.8l49.6 0c26.1 0 49.1 21.6 47.1 49.8-7.5 103.7-60.5 160.7-118 190.5-15.8 8.2-31.9 14.3-47.2 18.8-20.2 28.6-41.2 43.7-57.9 51.8l0 73.1 64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0 0-73.1c-16-7.7-35.9-22-55.3-48.3-18.4-4.8-38.4-12.1-57.9-23.1-54.1-30.3-102.9-87.4-109.9-189.9-1.9-28.1 21-49.7 47.1-49.7l49.6 0c-.3-5.2-.5-10.4-.7-15.8-1-26.5 20.6-48.2 47.1-48.2zM101.5 112l-52.4 0c6.2 84.7 45.1 127.1 85.2 149.6-14.4-37.3-26.3-86-32.8-149.6zM380 256.8c40.5-23.8 77.1-66.1 83.3-144.8L411 112c-6.2 60.9-17.4 108.2-31 144.8z"/></svg></h1>
         <div class="summary-box" id="summary-box"></div>
+        <div class="goal-status-box hidden" id="goal-status-box"></div>
         <button class="text-btn primary" id="done-btn">Back to Home</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Settings menu ===== -->
+
+  <template id="tpl-settings-menu">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Settings</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <button type="button" class="menu-item" id="log-btn">
+        <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+          <rect x="80" y="48" width="352" height="416" rx="24" fill="none" stroke="currentColor" stroke-width="32" />
+          <rect x="80" y="48" width="48" height="416" />
+          <rect x="176" y="160" width="200" height="28" rx="14" />
+          <rect x="176" y="232" width="200" height="28" rx="14" />
+          <rect x="176" y="304" width="140" height="28" rx="14" />
+        </svg>
+        <span>Log</span>
+      </button>
+      <button type="button" class="menu-item" id="goals-btn">
+        <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+          <circle cx="256" cy="256" r="200" fill="none" stroke="currentColor" stroke-width="32" />
+          <circle cx="256" cy="256" r="120" fill="none" stroke="currentColor" stroke-width="32" />
+          <circle cx="256" cy="256" r="40" />
+        </svg>
+        <span>Goals</span>
+      </button>
+      <button type="button" class="menu-item" id="instructions-btn">
+        <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+          <circle cx="256" cy="256" r="216" fill="none" stroke="currentColor" stroke-width="40" />
+          <circle cx="256" cy="176" r="28" />
+          <rect x="228" y="232" width="56" height="180" rx="12" />
+        </svg>
+        <span>Instructions</span>
+      </button>
+      <button type="button" class="menu-item" id="customize-btn">
+        <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+          <rect x="32" y="86" width="448" height="32" rx="16" />
+          <circle cx="176" cy="102" r="40" />
+          <rect x="32" y="240" width="448" height="32" rx="16" />
+          <circle cx="336" cy="256" r="40" />
+          <rect x="32" y="394" width="448" height="32" rx="16" />
+          <circle cx="256" cy="410" r="40" />
+        </svg>
+        <span>Customize</span>
+      </button>
+      <button type="button" class="menu-item" id="activities-library-btn">
+        <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+          <rect x="32" y="64" width="448" height="64" rx="12" />
+          <rect x="32" y="224" width="448" height="64" rx="12" />
+          <rect x="32" y="384" width="448" height="64" rx="12" />
+        </svg>
+        <span>Activities Library</span>
+      </button>
+      <button type="button" class="menu-item" id="export-all-btn">
+        <svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M384 192c53 0 96-43 96-96s-43-96-96-96-96 43-96 96c0 5.4 .5 10.8 1.3 16L159.6 184.1c-16.9-15-39.2-24.1-63.6-24.1-53 0-96 43-96 96s43 96 96 96c24.4 0 46.6-9.1 63.6-24.1L289.3 400c-.9 5.2-1.3 10.5-1.3 16 0 53 43 96 96 96s96-43 96-96-43-96-96-96c-24.4 0-46.6 9.1-63.6 24.1L190.7 272c.9-5.2 1.3-10.5 1.3-16s-.5-10.8-1.3-16l129.7-72.1c16.9 15 39.2 24.1 63.6 24.1z"/></svg>
+        <span>Export all data</span>
+      </button>
+      <button type="button" class="menu-item" id="import-btn">
+        <svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M64 0C28.7 0 0 28.7 0 64l0 240 182.1 0-31-31c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l72 72c9.4 9.4 9.4 24.6 0 33.9l-72 72c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l31-31-182.1 0 0 96c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-277.5c0-17-6.7-33.3-18.7-45.3L258.7 18.7C246.7 6.7 230.5 0 213.5 0L64 0zM325.5 176L232 176c-13.3 0-24-10.7-24-24L208 58.5 325.5 176z"/></svg>
+        <span>Import</span>
+      </button>
+    </div>
+  </template>
+
+  <template id="tpl-instructions">
+    <div class="sheet instructions-sheet">
+      <header class="sheet-header">
+        <h2>Instructions</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <div class="instructions-body">
+        <section>
+          <h3>Installing on your phone</h3>
+          <p>This is a web app, not an app-store app — but you can add it to your Home Screen so it opens full-screen, just like a regular app.</p>
+          <p><strong>iOS (Safari):</strong> tap the Share icon, then "Add to Home Screen".</p>
+          <p><strong>Android (Chrome):</strong> tap the ⋮ menu, then "Add to Home screen" (or "Install app").</p>
+        </section>
+        <section>
+          <h3>Building a focus timer</h3>
+          <p>Tap <strong>Set focus timer</strong> on the Home Screen to start. Choose <strong>Pomodoro</strong> for the classic Focus/Short Break cycle, or <strong>Custom</strong> to build your own sequence of intervals and sets.</p>
+        </section>
+        <section>
+          <h3>Pomodoro rounds</h3>
+          <p>Use the rounds stepper to set how many Focus/Short Break cycles to repeat, then tap the pencil on either block to change its length. A Long Break plays once at the end unless you switch it off.</p>
+        </section>
+        <section>
+          <h3>Reordering</h3>
+          <p>Press and drag the grip handle on the left of any card to reorder intervals and sets.</p>
+        </section>
+        <section>
+          <h3>Activities</h3>
+          <p>Tag a timer with an activity — Read, Study, Write, Chores, Clean, or one of your own — and its icon shows up on the play screen. Manage your saved activities from the gear menu's Activities Library.</p>
+        </section>
+        <section>
+          <h3>Playing a session</h3>
+          <p>Tap play and it starts right away — no extra tap needed. Use the sound icon to toggle beeps, and the prev/next buttons to move between intervals.</p>
+        </section>
+        <section>
+          <h3>Log &amp; Goals</h3>
+          <p>Every completed focus session is recorded in the Log. Set a daily or weekly Goal to track a streak, and optionally show your progress on the Home Screen.</p>
+        </section>
+        <section>
+          <h3>Backup &amp; sharing</h3>
+          <p>In the gear menu, use <strong>Export all data</strong> to back everything up, and <strong>Import</strong> to bring it back. Importing always merges into what you already have — it never replaces anything.</p>
+        </section>
+        <section>
+          <h3>Your data</h3>
+          <p>Everything you create is stored only on this device — there's no account and no server. Nothing is backed up automatically, so if you switch phones or clear your browser data, it's gone unless you've exported it yourself.</p>
+          <p><strong>Removing the app from your Home Screen deletes its saved data too</strong> — it's not just an icon, so deleting it works the same as uninstalling an app.</p>
+        </section>
+        <section>
+          <h3>Themes</h3>
+          <p>Pick Dark, Light, or Playful from the gear menu's Customize page. Playful lets you choose your own accent color too.</p>
+        </section>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-customize">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Customize</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <label class="field home-title-field">
+        <span>Home screen title</span>
+        <input type="text" id="home-title-input" maxlength="24" placeholder="Focus" autocomplete="off" />
+      </label>
+      <div class="theme-option-list">
+        <button type="button" class="theme-option" data-theme-mode="dark">
+          <span class="theme-swatch-preview dark"></span>
+          <span>Dark</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-mode="light">
+          <span class="theme-swatch-preview light"></span>
+          <span>Light</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-mode="playful">
+          <span class="theme-swatch-preview playful"></span>
+          <span>Playful</span>
+        </button>
+      </div>
+      <div class="playful-accent-picker hidden" id="playful-accent-picker">
+        <p class="playful-accent-label">Accent color</p>
+        <div class="swatch-row">
+          <button type="button" class="swatch-btn" data-accent="lipstick" aria-label="Lipstick"></button>
+          <button type="button" class="swatch-btn" data-accent="grapefruit" aria-label="Grapefruit"></button>
+          <button type="button" class="swatch-btn" data-accent="sunshine" aria-label="Sunshine"></button>
+          <button type="button" class="swatch-btn" data-accent="lilac" aria-label="Lilac"></button>
+          <button type="button" class="swatch-btn" data-accent="midnight" aria-label="Midnight"></button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-import">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Import</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <p class="import-hint">Choose an exported Focus Timer backup file.</p>
+      <button type="button" class="text-btn primary import-file-btn">Choose file…</button>
+      <input type="file" accept="application/json,.json" class="import-file-input" hidden />
+      <p class="import-message" aria-live="polite"></p>
+    </div>
+  </template>
+
+  <!-- ===== Activities library ===== -->
+
+  <template id="tpl-activities-library">
+    <div class="sheet">
+      <header class="sheet-header">
+        <h2>Activities Library</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <button type="button" class="text-btn new-activity-btn">+ New activity</button>
+      <div class="drawer-list" id="activities-library-list"></div>
+    </div>
+  </template>
+
+  <template id="tpl-activity-row">
+    <article class="card activity-row">
+      <span class="card-icon"></span>
+      <div class="card-main">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn edit-btn" aria-label="Edit" title="Edit"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M352.9 21.2L308 66.1 445.9 204 490.8 159.1C504.4 145.6 512 127.2 512 108s-7.6-37.6-21.2-51.1L455.1 21.2C441.6 7.6 423.2 0 404 0s-37.6 7.6-51.1 21.2zM274.1 100L58.9 315.1c-10.7 10.7-18.5 24.1-22.6 38.7L.9 481.6c-2.3 8.3 0 17.3 6.2 23.4s15.1 8.5 23.4 6.2l127.8-35.5c14.6-4.1 27.9-11.8 38.7-22.6L412 237.9 274.1 100z"/></svg></button>
+        <button class="icon-btn delete-btn" aria-label="Delete" title="Delete"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"/></svg></button>
+      </div>
+    </article>
+  </template>
+
+  <!-- ===== Log ===== -->
+
+  <template id="tpl-log">
+    <header class="topbar">
+      <button class="icon-btn back-btn" aria-label="Back"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288 480 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-370.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></button>
+      <h1>Log</h1>
+      <button class="icon-btn" id="clear-log-btn" aria-label="Delete log" title="Delete log"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"/></svg></button>
+    </header>
+    <div class="item-list" id="log-list"></div>
+  </template>
+
+  <template id="tpl-log-row">
+    <article class="card log-row">
+      <span class="card-icon"></span>
+      <div class="card-main">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn delete-btn" aria-label="Delete entry" title="Delete entry"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </div>
+    </article>
+  </template>
+
+  <!-- ===== Goals ===== -->
+
+  <template id="tpl-goals">
+    <header class="topbar">
+      <button class="icon-btn back-btn" aria-label="Back"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288 480 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-370.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></button>
+      <h1>Goals</h1>
+      <button class="icon-btn" id="add-goal-btn" aria-label="Add goal" title="Add goal"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/></svg></button>
+    </header>
+    <div class="item-list" id="goals-list"></div>
+  </template>
+
+  <template id="tpl-goal-card">
+    <article class="card goal-card">
+      <h2 class="card-title goal-title"></h2>
+      <p class="card-meta goal-meta"></p>
+      <div class="goal-progress-bar"><div class="goal-progress-fill"></div></div>
+      <p class="card-meta goal-streak"></p>
+      <div class="card-actions goal-card-actions">
+        <button class="icon-btn edit-btn" aria-label="Edit goal" title="Edit"><svg class="icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="M352.9 21.2L308 66.1 445.9 204 490.8 159.1C504.4 145.6 512 127.2 512 108s-7.6-37.6-21.2-51.1L455.1 21.2C441.6 7.6 423.2 0 404 0s-37.6 7.6-51.1 21.2zM274.1 100L58.9 315.1c-10.7 10.7-18.5 24.1-22.6 38.7L.9 481.6c-2.3 8.3 0 17.3 6.2 23.4s15.1 8.5 23.4 6.2l127.8-35.5c14.6-4.1 27.9-11.8 38.7-22.6L412 237.9 274.1 100z"/></svg></button>
+        <button class="icon-btn delete-btn" aria-label="Delete goal" title="Delete"><svg class="icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"/></svg></button>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-goal-settings">
+    <div class="sheet goal-settings-sheet">
+      <header class="sheet-header">
+        <h2 class="goal-settings-title">New goal</h2>
+        <button class="icon-btn close-btn" aria-label="Close"><svg class="icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false"><path d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"/></svg></button>
+      </header>
+      <div class="segmented goal-type-toggle">
+        <button type="button" class="segmented-option" data-goal-type="daily">Daily</button>
+        <button type="button" class="segmented-option" data-goal-type="weekly">Weekly</button>
+      </div>
+      <div class="goal-section" id="goal-daily-section">
+        <div class="weekday-list" id="weekday-list"></div>
+      </div>
+      <div class="goal-section hidden" id="goal-weekly-section">
+        <div class="frequency-list" id="frequency-list"></div>
+      </div>
+      <label class="field-checkbox">
+        <input type="checkbox" id="goal-show-home" />
+        <span>Show on Home Screen</span>
+      </label>
+      <div class="form-actions">
+        <button type="button" class="text-btn primary save-goal-btn">Save goal</button>
       </div>
     </div>
   </template>
