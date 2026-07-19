@@ -7,6 +7,7 @@ import { renderGoals } from "./views/goals.js";
 import { renderTodoHub } from "./views/todoEditor.js";
 import { renderTodoPlayer } from "./views/todoPlayer.js";
 import { applyTheme } from "./theme.js";
+import { checkWhatsNew } from "./whatsNew.js";
 
 applyTheme();
 
@@ -90,6 +91,7 @@ function route() {
 
 window.addEventListener("hashchange", route);
 route();
+checkWhatsNew();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

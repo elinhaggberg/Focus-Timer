@@ -9,8 +9,6 @@ import {
   getGoals,
   getAlarmSound,
   setAlarmSound,
-  getBackupNoticeSeen,
-  setBackupNoticeSeen,
 } from "../storage.js";
 import { focusTimerMeta, todoListMeta } from "../util.js";
 import { unlockAudio, previewAlarm } from "../audio.js";
@@ -48,25 +46,6 @@ export function renderHome(root, nav) {
 
   renderGoalStrip();
   renderList();
-  maybeShowBackupImprovedNotice();
-
-  // One-time notice after the backup fix that added theme/title/sound/alarm
-  // sound to the export -- a fresh install has nothing worth re-backing up,
-  // so it's marked seen silently instead of greeting a new user with it.
-  function maybeShowBackupImprovedNotice() {
-    if (getBackupNoticeSeen()) return;
-    setBackupNoticeSeen();
-    if (getFocusTimers().length === 0 && getTodoLists().length === 0) return;
-
-    const sheet = openSheet("tpl-backup-improved");
-    sheet.el.querySelector(".backup-improved-later-btn").addEventListener("click", () => sheet.close());
-    sheet.el.querySelector(".backup-improved-export-btn").addEventListener("click", async () => {
-      const data = exportBackupData();
-      const stamp = new Date().toISOString().slice(0, 10);
-      await shareOrDownload(`focus-timer-backup-${stamp}.json`, JSON.stringify(data, null, 2));
-      sheet.close();
-    });
-  }
 
   function renderGoalStrip() {
     const strip = document.getElementById("home-goal-strip");

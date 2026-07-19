@@ -8,7 +8,7 @@ const LOG_KEY = "ft_log_v1";
 const GOALS_KEY = "ft_goals_v1";
 const TODO_LISTS_KEY = "ft_todo_lists_v1";
 const TODO_TEMPLATES_KEY = "ft_todo_templates_v1";
-const BACKUP_NOTICE_KEY = "ft_backup_notice_v1";
+const LAST_SEEN_VERSION_KEY = "ft_last_seen_version_v1";
 
 function uid() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -375,15 +375,12 @@ export function importData(data) {
   };
 }
 
-// One-time notice shown after the backup fix that added theme/title/sound/
-// alarm sound to exportBackupData -- lets an existing user know their old
-// backup files are missing that data, so it's worth making a fresh one.
-export function getBackupNoticeSeen() {
-  return localStorage.getItem(BACKUP_NOTICE_KEY) === "true";
+export function getLastSeenVersion() {
+  return readJSON(LAST_SEEN_VERSION_KEY, null);
 }
 
-export function setBackupNoticeSeen() {
-  localStorage.setItem(BACKUP_NOTICE_KEY, "true");
+export function setLastSeenVersion(version) {
+  writeJSON(LAST_SEEN_VERSION_KEY, version);
 }
 
 export { uid };
