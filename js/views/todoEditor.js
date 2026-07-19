@@ -18,7 +18,17 @@ export function renderTodoHub(root, nav, todoId) {
     nav.toHome();
     return;
   }
-  if (list.items.length === 0) list.items.push(makeTodoItem());
+  if (list.items.length === 0) {
+    list.items.push(makeTodoItem());
+  } else if (isEdit) {
+    // Editing a saved list opens with a trailing empty item, so it's
+    // obvious you can just start typing to add another step instead of
+    // hunting for an explicit "add" action.
+    const last = list.items[list.items.length - 1];
+    if (last.text.trim() !== "" || last.children.length > 0) {
+      list.items.push(makeTodoItem());
+    }
+  }
 
   const tpl = document.getElementById("tpl-todo-hub");
   root.replaceChildren(tpl.content.cloneNode(true));
