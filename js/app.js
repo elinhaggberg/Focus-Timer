@@ -8,6 +8,7 @@ import { renderTodoHub } from "./views/todoEditor.js";
 import { renderTodoPlayer } from "./views/todoPlayer.js";
 import { applyTheme } from "./theme.js";
 import { checkWhatsNew } from "./whatsNew.js";
+import { checkOnboarding } from "./onboarding.js";
 
 applyTheme();
 
@@ -91,6 +92,7 @@ function route() {
 
 window.addEventListener("hashchange", route);
 route();
+checkOnboarding();
 checkWhatsNew();
 
 if ("serviceWorker" in navigator) {
