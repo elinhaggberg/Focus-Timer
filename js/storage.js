@@ -302,6 +302,10 @@ export function exportBackupData() {
     goals: getGoals(),
     todoLists: getTodoLists(),
     todoTemplates: getTodoTemplates(),
+    theme: getThemePref(),
+    homeTitle: getHomeTitle(),
+    soundEnabled: getSoundEnabled(),
+    alarmSound: getAlarmSound(),
   };
 }
 
@@ -349,6 +353,16 @@ export function importData(data) {
   const newTodoTemplates = importedTodoTemplates.map((t) => ({ ...t, id: uid(), createdAt: Date.now(), items: remapItems(t.items) }));
   writeJSON(TODO_TEMPLATES_KEY, [...getTodoTemplates(), ...newTodoTemplates]);
 
+  // Theme, home title, and sound settings are single current-state
+  // preferences, not lists, so a full backup restore applies them directly
+  // rather than merging -- that's what "restore my backup" means for a
+  // device's preferences.
+  if (data.theme) setThemePref(data.theme);
+  if (data.homeTitle) setHomeTitle(data.homeTitle);
+  if (typeof data.soundEnabled === "boolean") setSoundEnabled(data.soundEnabled);
+  if (data.alarmSound) setAlarmSound(data.alarmSound);
+  const preferencesApplied = Boolean(data.theme || data.homeTitle || typeof data.soundEnabled === "boolean" || data.alarmSound);
+
   return {
     activityCount: importedActivities.length,
     timerCount: newTimers.length,
@@ -356,6 +370,7 @@ export function importData(data) {
     goalCount: newGoals.length,
     todoListCount: newTodoLists.length,
     todoTemplateCount: newTodoTemplates.length,
+    preferencesApplied,
   };
 }
 

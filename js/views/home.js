@@ -260,7 +260,9 @@ export function renderHome(root, nav) {
         const parts = [];
         if (result.timerCount) parts.push(`${result.timerCount} focus timer${result.timerCount !== 1 ? "s" : ""}`);
         if (result.todoListCount) parts.push(`${result.todoListCount} to-do list${result.todoListCount !== 1 ? "s" : ""}`);
-        messageEl.textContent = parts.length ? `Imported ${parts.join(" and ")}.` : "Nothing new to import.";
+        let text = parts.length ? `Imported ${parts.join(" and ")}.` : "Nothing new to import.";
+        if (result.preferencesApplied) text += " Restored your theme/settings too.";
+        messageEl.textContent = text;
         renderList();
         renderGoalStrip();
         setTimeout(() => sheet.close(), 900);
