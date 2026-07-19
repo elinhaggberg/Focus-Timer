@@ -15,3 +15,7 @@ A simple, ad-free focus timer for deep work, focus sessions, and concentration p
 ## Tech
 
 Vanilla HTML/CSS/JS — no build step, no framework, no server. Everything is stored in `localStorage`.
+
+## License
+
+[GNU AGPL-3.0](LICENSE). Free to use, copy, and modify — but any version you distribute or run as a hosted service has to stay open source too.
