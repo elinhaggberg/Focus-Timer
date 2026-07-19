@@ -9,6 +9,9 @@ import {
   getGoals,
   getAlarmSound,
   setAlarmSound,
+  markBackedUp,
+  dismissBackupBanner,
+  shouldShowBackupBanner,
 } from "../storage.js";
 import { focusTimerMeta, todoListMeta } from "../util.js";
 import { unlockAudio, previewAlarm } from "../audio.js";
@@ -46,6 +49,26 @@ export function renderHome(root, nav) {
 
   renderGoalStrip();
   renderList();
+
+  const banner = document.getElementById("backup-banner");
+  if (shouldShowBackupBanner()) {
+    banner.classList.remove("hidden");
+    banner.querySelector("#backup-now-btn").addEventListener("click", async () => {
+      await doExport();
+      banner.classList.add("hidden");
+    });
+    banner.querySelector("#backup-dismiss-btn").addEventListener("click", () => {
+      dismissBackupBanner();
+      banner.classList.add("hidden");
+    });
+  }
+
+  async function doExport() {
+    const data = exportBackupData();
+    const stamp = new Date().toISOString().slice(0, 10);
+    await shareOrDownload(`focus-timer-backup-${stamp}.json`, JSON.stringify(data, null, 2));
+    markBackedUp();
+  }
 
   function renderGoalStrip() {
     const strip = document.getElementById("home-goal-strip");
@@ -158,9 +181,7 @@ export function renderHome(root, nav) {
       openActivitiesLibrary();
     });
     sheet.el.querySelector("#export-all-btn").addEventListener("click", async () => {
-      const data = exportBackupData();
-      const stamp = new Date().toISOString().slice(0, 10);
-      await shareOrDownload(`focus-timer-backup-${stamp}.json`, JSON.stringify(data, null, 2));
+      await doExport();
       sheet.close();
     });
     sheet.el.querySelector("#import-btn").addEventListener("click", () => {
