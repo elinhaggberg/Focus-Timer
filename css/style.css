@@ -447,6 +447,8 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   font-size: 1.25rem;
 }
 .swipe-content {
+  position: relative;
+  z-index: 1;
   touch-action: pan-y;
 }
 
