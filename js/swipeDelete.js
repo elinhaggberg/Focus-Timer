@@ -14,6 +14,7 @@ function closeOpenSwipe() {
     openContent.style.transition = "transform 0.2s ease";
     openContent.style.transform = "translateX(0px)";
   }
+  if (openRow) openRow.classList.remove("swipe-open");
   openRow = null;
   openContent = null;
 }
@@ -72,6 +73,7 @@ export function enableSwipeToDelete(row, content) {
     if (axis === "x") {
       const shouldOpen = current <= -REVEAL_WIDTH / 2;
       content.style.transform = shouldOpen ? `translateX(-${REVEAL_WIDTH}px)` : "translateX(0px)";
+      row.classList.toggle("swipe-open", shouldOpen);
       if (shouldOpen) {
         openRow = row;
         openContent = content;
