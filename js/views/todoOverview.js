@@ -9,7 +9,10 @@ export function openTodoOverview(todoId, nav, { onDeleted } = {}) {
   const list = getTodoList(todoId);
   if (!list) return;
 
-  const sheet = openSheet("tpl-todo-overview");
+  // Checking items, clearing, etc. all happen live inside this sheet without
+  // the home screen knowing — refresh its card on any close (not just
+  // delete) so a stale "0/4 checked" doesn't linger until the next reload.
+  const sheet = openSheet("tpl-todo-overview", { onClose: () => onDeleted?.() });
   sheet.el.querySelector(".close-btn").addEventListener("click", () => sheet.close());
 
   renderHeader();
@@ -121,7 +124,6 @@ export function openTodoOverview(todoId, nav, { onDeleted } = {}) {
       deleteTodoList(list.id);
       confirmSheet.close();
       sheet.close();
-      onDeleted?.();
     });
   });
 
