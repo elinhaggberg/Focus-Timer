@@ -427,6 +427,14 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
+  transition: border-radius 0.2s ease;
+}
+/* The row's own rounded overflow-clip is what actually shapes the visible
+   corner (it masks the card regardless of the card's own radius), so it has
+   to go square here too, not just the card underneath. */
+.swipe-row.swipe-open {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 /* Wider than the reveal (76px) and extending further left, under the card,
    so the card's own rounded right corner — exposed right at the reveal
