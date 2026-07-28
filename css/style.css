@@ -455,6 +455,16 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   z-index: 1;
   touch-action: pan-y;
 }
+/* While revealed, the card's leading edge sits flush against the row's own
+   edge (like a native swipe-to-delete row) instead of keeping its resting
+   rounded corner there. */
+.swipe-content .saved-card {
+  transition: border-radius 0.2s ease;
+}
+.swipe-row.swipe-open .swipe-content .saved-card {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
 
 /* Floating action button */
 .fab {
