@@ -12,10 +12,13 @@ import {
   markBackedUp,
   dismissBackupBanner,
   shouldShowBackupBanner,
+  deleteFocusTimer,
+  deleteTodoList,
 } from "../storage.js";
 import { focusTimerMeta, todoListMeta } from "../util.js";
 import { unlockAudio, previewAlarm } from "../audio.js";
 import { openSheet } from "../sheet.js";
+import { enableSwipeToDelete, closeAnySwipe } from "../swipeDelete.js";
 import { shareOrDownload, filenameFor } from "../share.js";
 import { getTheme, setTheme } from "../theme.js";
 import { activityIconSvg } from "../activityIcons.js";
@@ -87,6 +90,7 @@ export function renderHome(root, nav) {
 
   function renderList() {
     const listEl = document.getElementById("saved-list");
+    closeAnySwipe();
     const focusItems = getFocusTimers().map((t) => ({ kind: "focus", data: t }));
     const todoItems = getTodoLists().map((l) => ({ kind: "todo", data: l }));
     const items = [...focusItems, ...todoItems].sort((a, b) => b.data.createdAt - a.data.createdAt);
@@ -102,6 +106,26 @@ export function renderHome(root, nav) {
     const cardTpl = document.getElementById("tpl-saved-card");
     const nodes = items.map((entry) => (entry.kind === "focus" ? buildFocusCard(entry.data) : buildTodoCard(entry.data)));
     listEl.replaceChildren(...nodes);
+
+    function wireSwipeDelete(node, name, onConfirm) {
+      const row = node.querySelector(".swipe-row");
+      const content = node.querySelector(".swipe-content");
+      enableSwipeToDelete(row, content);
+      node.querySelector(".swipe-trash-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const confirmSheet = openSheet("tpl-confirm-delete");
+        confirmSheet.el.querySelector(".confirm-message").textContent = `Delete "${name}"? This can't be undone.`;
+        confirmSheet.el.querySelector(".cancel-btn").addEventListener("click", () => {
+          closeAnySwipe();
+          confirmSheet.close();
+        });
+        confirmSheet.el.querySelector(".confirm-btn").addEventListener("click", () => {
+          onConfirm();
+          confirmSheet.close();
+          renderList();
+        });
+      });
+    }
 
     function buildFocusCard(timer) {
       const node = cardTpl.content.cloneNode(true);
@@ -124,6 +148,7 @@ export function renderHome(root, nav) {
         if (e.target.closest(".card-actions")) return;
         openFocusPreview(timer.id, nav, { onDeleted: renderList });
       });
+      wireSwipeDelete(node, timer.name || "Untitled focus timer", () => deleteFocusTimer(timer.id));
       return node;
     }
 
@@ -148,6 +173,7 @@ export function renderHome(root, nav) {
         if (e.target.closest(".card-actions")) return;
         openTodoOverview(list.id, nav, { onDeleted: renderList });
       });
+      wireSwipeDelete(node, list.name || "Untitled list", () => deleteTodoList(list.id));
       return node;
     }
   }

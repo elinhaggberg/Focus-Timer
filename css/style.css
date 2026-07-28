@@ -422,6 +422,34 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
 }
 .saved-card .icon-btn { width: 42px; height: 42px; font-size: 1.15rem; }
 
+/* Swipe-left-to-reveal-trash on the home screen's saved-item cards */
+.swipe-row {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.swipe-trash {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 76px;
+  background: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.swipe-trash-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  color: #fff;
+  font-size: 1.25rem;
+}
+.swipe-content {
+  touch-action: pan-y;
+}
+
 /* Floating action button */
 .fab {
   position: fixed;
