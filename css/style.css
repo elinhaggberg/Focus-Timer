@@ -428,19 +428,23 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   border-radius: var(--radius);
   overflow: hidden;
 }
+/* Wider than the reveal (76px) and extending further left, under the card,
+   so the card's own rounded right corner — exposed right at the reveal
+   boundary once slid open — always uncovers more red underneath instead of
+   a sliver of whatever sits behind the row. */
 .swipe-trash {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 76px;
+  width: 110px;
   background: var(--danger);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
 }
 .swipe-trash-btn {
-  width: 100%;
+  width: 76px;
   height: 100%;
   border-radius: 0;
   color: #fff;
