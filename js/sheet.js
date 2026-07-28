@@ -28,7 +28,7 @@ function unlockBodyScroll() {
   }
 }
 
-export function openSheet(templateId) {
+export function openSheet(templateId, { onClose } = {}) {
   const tpl = document.getElementById(templateId);
   const backdrop = document.createElement("div");
   backdrop.className = "sheet-backdrop";
@@ -42,6 +42,7 @@ export function openSheet(templateId) {
     closed = true;
     backdrop.remove();
     unlockBodyScroll();
+    onClose?.();
   }
   backdrop.addEventListener("click", (e) => {
     if (e.target === backdrop) close();
