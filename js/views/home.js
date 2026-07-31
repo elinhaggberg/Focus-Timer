@@ -214,6 +214,15 @@ export function renderHome(root, nav) {
       sheet.close();
       openImport();
     });
+    sheet.el.querySelector("#app-library-link-btn").addEventListener("click", () => {
+      sheet.close();
+      openAppLibraryPromo();
+    });
+  }
+
+  function openAppLibraryPromo() {
+    const sheet = openSheet("tpl-app-library-promo");
+    sheet.el.querySelector(".cancel-btn").addEventListener("click", () => sheet.close());
   }
 
   function openInstructions() {
