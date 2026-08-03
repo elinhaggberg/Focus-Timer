@@ -1136,6 +1136,17 @@ textarea.card-title::placeholder { color: var(--text-dim); font-weight: 600; }
   border-color: color-mix(in srgb, var(--bg) 85%, black);
 }
 
+/* The rule above has the same specificity as .activity-tile.active /
+   .icon-picker-item.active and comes later, so it was silently cancelling
+   the selection indicator in Playful theme — clicking a tile/icon toggled
+   the class fine, but nothing visibly changed. Needs its own, more specific
+   override to actually win. */
+:root[data-theme="playful"] .activity-tile.active,
+:root[data-theme="playful"] .icon-picker-item.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, var(--card-tint));
+}
+
 /* The rounds/goal-progress track — and icon circles like it — otherwise
    blend into the tinted card behind them; a darker shade of that same tint
    keeps them readable without introducing an unrelated color. */
