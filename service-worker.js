@@ -1,4 +1,4 @@
-const CACHE_NAME = "focus-timer-v3";
+const CACHE_NAME = "focus-timer-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
