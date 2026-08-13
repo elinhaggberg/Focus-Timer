@@ -18,6 +18,7 @@ import {
 import { focusTimerMeta, todoListMeta } from "../util.js";
 import { unlockAudio, previewAlarm } from "../audio.js";
 import { openSheet } from "../sheet.js";
+import { applyTheme } from "../theme.js";
 import { enableSwipeToDelete, closeAnySwipe } from "../swipeDelete.js";
 import { shareOrDownload, filenameFor } from "../share.js";
 import { getTheme, setTheme } from "../theme.js";
@@ -317,7 +318,11 @@ export function renderHome(root, nav) {
         if (result.timerCount) parts.push(`${result.timerCount} focus timer${result.timerCount !== 1 ? "s" : ""}`);
         if (result.todoListCount) parts.push(`${result.todoListCount} to-do list${result.todoListCount !== 1 ? "s" : ""}`);
         let text = parts.length ? `Imported ${parts.join(" and ")}.` : "Nothing new to import.";
-        if (result.preferencesApplied) text += " Restored your theme/settings too.";
+        if (result.preferencesApplied) {
+          text += " Restored your theme/settings too.";
+          applyTheme();
+          document.getElementById("home-title").textContent = getHomeTitle();
+        }
         messageEl.textContent = text;
         renderList();
         renderGoalStrip();
