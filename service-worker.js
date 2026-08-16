@@ -1,4 +1,4 @@
-const CACHE_NAME = "focus-timer-v4";
+const CACHE_NAME = "focus-timer-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -34,8 +34,6 @@ const APP_SHELL = [
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
   "./icons/apple-touch-icon.png",
-  "./icons/icon-192-dark.png",
-  "./icons/icon-512-dark.png",
 ];
 
 self.addEventListener("install", (event) => {
